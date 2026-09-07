@@ -90,6 +90,7 @@ public partial class MainViewModel : ViewModelBase{
         if(value == 1){
             _=LoadSnapshotsAsync();
         }else if(value == 2){
+            _=RefreshTotalSnapshotsCountAsync();
             DiscardUnsavedSettings();
         }else{
             DiscardUnsavedSettings();
@@ -114,10 +115,9 @@ public partial class MainViewModel : ViewModelBase{
         _cancellationTokenSource=new CancellationTokenSource();
         Task.Run(async () =>{
             try{
-                // EnsureDatabaseCreatedAsync and GetRecentSnapshotsAsync execute database calls that can throw DbException or SocketException
+                // EnsureDatabaseCreatedAsync and GetSnapshotCountAsync execute database calls that can throw DbException or SocketException
                 await _snapshotRepository.EnsureDatabaseCreatedAsync(_cancellationTokenSource.Token);
-                IReadOnlyList<SystemSnapshot> recentSnapshots=await _snapshotRepository.GetRecentSnapshotsAsync(1, _cancellationTokenSource.Token);
-                Dispatcher.UIThread.Post(() => TotalSnapshotsRecorded=recentSnapshots.Count);
+                await RefreshTotalSnapshotsCountAsync(_cancellationTokenSource.Token);
             }
             catch(Exception ex){
                 Dispatcher.UIThread.Post(() => StatusMessage=$"DB Init: {ex.Message}");
@@ -210,6 +210,9 @@ public partial class MainViewModel : ViewModelBase{
                 // SaveSnapshotAsync executes database inserts and can throw DbUpdateException or DbException
                 await SaveSnapshotAsync(cpu, mem, drives, nets, "Auto Snapshot", ct);
             }
+            if(SelectedTabIndex == 2){
+                await RefreshTotalSnapshotsCountAsync(ct);
+            }
         }
         catch(Exception ex){
             Dispatcher.UIThread.Post(() => StatusMessage=$"Polling warning: {ex.Message}");
@@ -244,6 +247,7 @@ public partial class MainViewModel : ViewModelBase{
         }else{
             await PollMetricsAsync(CancellationToken.None);
         }
+        await RefreshTotalSnapshotsCountAsync();
     }
 
     private async Task SaveSnapshotAsync(
@@ -269,7 +273,16 @@ public partial class MainViewModel : ViewModelBase{
         snapshot.Note=note;
         // _snapshotRepository.SaveSnapshotAsync can throw DbUpdateException or DbException
         await _snapshotRepository.SaveSnapshotAsync(snapshot, ct);
-        Dispatcher.UIThread.Post(() => TotalSnapshotsRecorded++);
+        await RefreshTotalSnapshotsCountAsync(ct);
+    }
+
+    public async Task RefreshTotalSnapshotsCountAsync(CancellationToken ct=default){
+        try{
+            int count=await _snapshotRepository.GetSnapshotCountAsync(ct);
+            Dispatcher.UIThread.Post(() => TotalSnapshotsRecorded=count);
+        }
+        catch{
+        }
     }
 
     private static string FormatUptime(TimeSpan uptime){
@@ -279,3 +292,4 @@ public partial class MainViewModel : ViewModelBase{
         return $"{uptime.Hours}h {uptime.Minutes}m {uptime.Seconds}s";
     }
 }
+

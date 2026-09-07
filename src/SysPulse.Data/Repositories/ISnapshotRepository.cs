@@ -9,4 +9,5 @@ public interface ISnapshotRepository{
     Task<IReadOnlyList<SystemSnapshot>> GetSnapshotsAsync(string? hostname=null, int count=100, CancellationToken ct=default);
     Task<bool> DeleteSnapshotAsync(int id, CancellationToken ct=default);
     Task<int> DeleteAllSnapshotsAsync(CancellationToken ct=default);
+    Task<int> GetSnapshotCountAsync(CancellationToken ct=default);
 }

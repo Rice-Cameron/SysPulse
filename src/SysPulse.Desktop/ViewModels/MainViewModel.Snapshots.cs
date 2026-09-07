@@ -51,7 +51,7 @@ public partial class MainViewModel{
             if(SelectedSnapshot == null && SnapshotsList.Count > 0){
                 SelectedSnapshot=SnapshotsList[0];
             }
-            TotalSnapshotsRecorded=SnapshotsList.Count;
+            await RefreshTotalSnapshotsCountAsync();
             StatusMessage=$"Loaded {SnapshotsList.Count} snapshots from {DatabaseProviderName} at {DateTime.Now:T}";
         }
         catch(Exception ex){
@@ -74,7 +74,7 @@ public partial class MainViewModel{
             if(success){
                 SnapshotsList.Remove(SelectedSnapshot);
                 SelectedSnapshot=SnapshotsList.FirstOrDefault();
-                TotalSnapshotsRecorded=SnapshotsList.Count;
+                await RefreshTotalSnapshotsCountAsync();
                 StatusMessage=$"Deleted snapshot #{targetId} from {DatabaseProviderName}";
             }
         }
@@ -101,6 +101,7 @@ public partial class MainViewModel{
             SnapshotsList.Clear();
             SelectedSnapshot=null;
             TotalSnapshotsRecorded=0;
+            await RefreshTotalSnapshotsCountAsync();
             IsDeleteAllModalOpen=false;
             StatusMessage=$"Deleted all {deletedCount} snapshots from {DatabaseProviderName}";
         }

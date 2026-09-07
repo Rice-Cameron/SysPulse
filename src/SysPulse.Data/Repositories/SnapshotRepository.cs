@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using SysPulse.Data.Context;
 using SysPulse.Data.Entities;
@@ -6,72 +7,112 @@ namespace SysPulse.Data.Repositories;
 
 public class SnapshotRepository : ISnapshotRepository{
     private readonly SysPulseDbContext _sysPulseDbContext;
+    private readonly SemaphoreSlim _semaphore=new SemaphoreSlim(1, 1);
 
     public SnapshotRepository(SysPulseDbContext sysPulseDbContext){
         _sysPulseDbContext=sysPulseDbContext;
     }
 
     public async Task EnsureDatabaseCreatedAsync(CancellationToken ct=default){
-        // EnsureCreatedAsync can throw DbException or SocketException if the database provider connection fails
-        await _sysPulseDbContext.Database.EnsureCreatedAsync(ct);
+        await _semaphore.WaitAsync(ct);
         try{
-            // Auto-migrate: ensure Hostname column exists in existing database schemas
-            if(_sysPulseDbContext.Database.IsSqlite()){
-                await _sysPulseDbContext.Database.ExecuteSqlRawAsync(
-                    "ALTER TABLE \"Snapshots\" ADD COLUMN \"Hostname\" TEXT NOT NULL DEFAULT 'localhost';", ct);
-            }else{
-                await _sysPulseDbContext.Database.ExecuteSqlRawAsync(
-                    "ALTER TABLE `Snapshots` ADD COLUMN `Hostname` VARCHAR(128) NOT NULL DEFAULT 'localhost';", ct);
+            await _sysPulseDbContext.Database.EnsureCreatedAsync(ct);
+            try{
+                if(_sysPulseDbContext.Database.IsSqlite()){
+                    await _sysPulseDbContext.Database.ExecuteSqlRawAsync(
+                        "ALTER TABLE \"Snapshots\" ADD COLUMN \"Hostname\" TEXT NOT NULL DEFAULT 'localhost';", ct);
+                }else{
+                    await _sysPulseDbContext.Database.ExecuteSqlRawAsync(
+                        "ALTER TABLE `Snapshots` ADD COLUMN `Hostname` VARCHAR(128) NOT NULL DEFAULT 'localhost';", ct);
+                }
+            }
+            catch{
             }
         }
-        catch{
-            // Column already exists or table was freshly created
+        finally{
+            _semaphore.Release();
         }
     }
 
     public async Task SaveSnapshotAsync(SystemSnapshot snapshot, CancellationToken ct=default){
-        // SaveChangesAsync can throw DbUpdateException if constraints fail, or DbException / TimeoutException
-        _sysPulseDbContext.Snapshots.Add(snapshot);
-        await _sysPulseDbContext.SaveChangesAsync(ct);
+        await _semaphore.WaitAsync(ct);
+        try{
+            _sysPulseDbContext.Snapshots.Add(snapshot);
+            await _sysPulseDbContext.SaveChangesAsync(ct);
+        }
+        finally{
+            _semaphore.Release();
+        }
     }
 
     public async Task<IReadOnlyList<SystemSnapshot>> GetRecentSnapshotsAsync(int count=60, CancellationToken ct=default){
-        // ToListAsync can throw DbException or OperationCanceledException
-        return await _sysPulseDbContext.Snapshots
-            .OrderByDescending(s => s.TimestampUtc)
-            .Take(count)
-            .ToListAsync(ct);
+        await _semaphore.WaitAsync(ct);
+        try{
+            return await _sysPulseDbContext.Snapshots
+                .OrderByDescending(s => s.TimestampUtc)
+                .Take(count)
+                .ToListAsync(ct);
+        }
+        finally{
+            _semaphore.Release();
+        }
     }
 
     public async Task<IReadOnlyList<SystemSnapshot>> GetSnapshotsAsync(string? hostname=null, int count=100, CancellationToken ct=default){
-        // Querying snapshots with optional hostname filter
-        IQueryable<SystemSnapshot> query=_sysPulseDbContext.Snapshots.AsQueryable();
-        if(!string.IsNullOrWhiteSpace(hostname)){
-            query=query.Where(s => s.Hostname == hostname.Trim());
+        await _semaphore.WaitAsync(ct);
+        try{
+            IQueryable<SystemSnapshot> query=_sysPulseDbContext.Snapshots.AsQueryable();
+            if(!string.IsNullOrWhiteSpace(hostname)){
+                query=query.Where(s => s.Hostname == hostname.Trim());
+            }
+            return await query
+                .OrderByDescending(s => s.TimestampUtc)
+                .Take(count)
+                .ToListAsync(ct);
         }
-        return await query
-            .OrderByDescending(s => s.TimestampUtc)
-            .Take(count)
-            .ToListAsync(ct);
+        finally{
+            _semaphore.Release();
+        }
     }
 
     public async Task<bool> DeleteSnapshotAsync(int id, CancellationToken ct=default){
-        // FindAsync and SaveChangesAsync can throw DbException
-        SystemSnapshot? entity=await _sysPulseDbContext.Snapshots.FindAsync([id], ct);
-        if(entity is null){
-            return false;
+        await _semaphore.WaitAsync(ct);
+        try{
+            SystemSnapshot? entity=await _sysPulseDbContext.Snapshots.FindAsync([id], ct);
+            if(entity is null){
+                return false;
+            }
+            _sysPulseDbContext.Snapshots.Remove(entity);
+            await _sysPulseDbContext.SaveChangesAsync(ct);
+            return true;
         }
-        _sysPulseDbContext.Snapshots.Remove(entity);
-        await _sysPulseDbContext.SaveChangesAsync(ct);
-        return true;
+        finally{
+            _semaphore.Release();
+        }
     }
 
     public async Task<int> DeleteAllSnapshotsAsync(CancellationToken ct=default){
-        // ToListAsync, RemoveRange, and SaveChangesAsync can throw DbException
-        List<SystemSnapshot> all=await _sysPulseDbContext.Snapshots.ToListAsync(ct);
-        int count=all.Count;
-        _sysPulseDbContext.Snapshots.RemoveRange(all);
-        await _sysPulseDbContext.SaveChangesAsync(ct);
-        return count;
+        await _semaphore.WaitAsync(ct);
+        try{
+            List<SystemSnapshot> all=await _sysPulseDbContext.Snapshots.ToListAsync(ct);
+            int count=all.Count;
+            _sysPulseDbContext.Snapshots.RemoveRange(all);
+            await _sysPulseDbContext.SaveChangesAsync(ct);
+            return count;
+        }
+        finally{
+            _semaphore.Release();
+        }
+    }
+
+    public async Task<int> GetSnapshotCountAsync(CancellationToken ct=default){
+        await _semaphore.WaitAsync(ct);
+        try{
+            return await _sysPulseDbContext.Snapshots.CountAsync(ct);
+        }
+        finally{
+            _semaphore.Release();
+        }
     }
 }
+

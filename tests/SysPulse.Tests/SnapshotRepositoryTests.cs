@@ -110,8 +110,23 @@ public class SnapshotRepositoryTests : IDisposable{
         Assert.Empty(remaining);
     }
 
+    [Fact]
+    public async Task GetSnapshotCountAsync_ReturnsAccurateCount(){
+        int initialCount=await _snapshotRepository.GetSnapshotCountAsync();
+        Assert.Equal(0, initialCount);
+        SystemSnapshot s1=new SystemSnapshot();
+        s1.Hostname="count-host";
+        await _snapshotRepository.SaveSnapshotAsync(s1);
+        SystemSnapshot s2=new SystemSnapshot();
+        s2.Hostname="count-host";
+        await _snapshotRepository.SaveSnapshotAsync(s2);
+        int afterCount=await _snapshotRepository.GetSnapshotCountAsync();
+        Assert.Equal(2, afterCount);
+    }
+
     public void Dispose(){
         _sysPulseDbContext.Dispose();
         _sqliteConnection.Dispose();
     }
 }
+
