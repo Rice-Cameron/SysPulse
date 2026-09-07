@@ -79,5 +79,5 @@ public partial class SnapshotItemViewModel : ViewModelBase{
 
     public string TimestampLocalText => TimestampUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
     public string SummaryText => $"CPU: {CpuUsagePercent:F1}% | RAM: {MemoryUsagePercent:F1}% | Disk: {DiskUsagePercent:F1}%";
-    public string NetworkSpeedText => $"↓ {NetworkDownloadKbps:F1} KB/s  ↑ {NetworkUploadKbps:F1} KB/s";
+    public string NetworkSpeedText => $"Down: {NetworkDownloadKbps:F1} KB/s  Up: {NetworkUploadKbps:F1} KB/s";
 }

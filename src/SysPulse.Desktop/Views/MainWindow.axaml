@@ -7,7 +7,7 @@
         x:Class="SysPulse.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="SysPulse — Linux Command Center"
+        Title="SysPulse - Linux Command Center"
         Width="1100" Height="750"
         MinWidth="900" MinHeight="620"
         Background="#13141f">
@@ -52,7 +52,7 @@
                     </Button>
                     <Button Command="{Binding RefreshNowCommand}" 
                             Background="#2a2c42" Foreground="#f8fafc" CornerRadius="8" Padding="12,6">
-                        <TextBlock Text="↻ Refresh" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Refresh" FontSize="12" FontWeight="SemiBold"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -62,7 +62,7 @@
         <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Margin="0,0,0,10">
 
             <!-- TAB 1: LIVE MONITOR -->
-            <TabItem Header="⚡ Live Monitor" FontSize="13" FontWeight="SemiBold">
+            <TabItem Header="Live Monitor" FontSize="13" FontWeight="SemiBold">
                 <Grid RowDefinitions="Auto, *" Margin="0,10,0,0">
                     
                     <!-- FOUR GLANCEABLE STAT CARDS -->
@@ -125,8 +125,8 @@
                                             <StackPanel Margin="0,2">
                                                 <Grid ColumnDefinitions="*, Auto, Auto">
                                                     <TextBlock Grid.Column="0" Text="{Binding InterfaceName}" FontSize="11" FontWeight="SemiBold" Foreground="#cbd5e1"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding DownloadText, StringFormat='↓ {0}'}" FontSize="11" Foreground="#38bdf8" Margin="0,0,10,0"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding UploadText, StringFormat='↑ {0}'}" FontSize="11" Foreground="#c084fc"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding DownloadText, StringFormat='In: {0}'}" FontSize="11" Foreground="#38bdf8" Margin="0,0,10,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding UploadText, StringFormat='Out: {0}'}" FontSize="11" Foreground="#c084fc"/>
                                                 </Grid>
                                             </StackPanel>
                                         </DataTemplate>
@@ -223,7 +223,7 @@
             </TabItem>
 
             <!-- TAB 2: DATABASE SNAPSHOTS MENU -->
-            <TabItem Header="📜 Snapshots History" FontSize="13" FontWeight="SemiBold">
+            <TabItem Header="Snapshots History" FontSize="13" FontWeight="SemiBold">
                 <Grid RowDefinitions="Auto, *" Margin="0,10,0,0">
                     
                     <!-- FILTER & CONTROLS TOOLBAR -->
@@ -250,7 +250,7 @@
                                 </Border>
                                 <Button Command="{Binding LoadSnapshotsCommand}" 
                                         Background="#2a2c42" Foreground="#f8fafc" CornerRadius="6" Padding="10,5">
-                                    <TextBlock Text="↻ Refresh" FontSize="12" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Refresh" FontSize="12" FontWeight="SemiBold"/>
                                 </Button>
                             </StackPanel>
                         </Grid>
@@ -318,7 +318,7 @@
                                                 </StackPanel>
                                                 <Button Grid.Column="1" Command="{Binding DeleteSelectedSnapshotCommand}" 
                                                         Background="#ef4444" Foreground="White" CornerRadius="8" Padding="12,6" VerticalAlignment="Top">
-                                                    <TextBlock Text="🗑 Delete" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="Delete" FontSize="12" FontWeight="SemiBold"/>
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -380,7 +380,6 @@
                                 <!-- Empty Selection Placeholder -->
                                 <StackPanel IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNull}}" 
                                             HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                                    <TextBlock Text="📜" FontSize="36" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Select a snapshot from the list to view its metrics" 
                                                FontSize="14" FontWeight="SemiBold" Foreground="#64748b" HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -395,7 +394,7 @@
         <Border Grid.Row="2" Background="#1c1d2d" CornerRadius="8" Padding="14,8" Margin="0,4,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16">
-                    <TextBlock Text="{Binding DatabaseProviderName, StringFormat='● EF Core Active ({0})'}" 
+                    <TextBlock Text="{Binding DatabaseProviderName, StringFormat='[Active] EF Core ({0})'}" 
                                FontSize="11" FontWeight="SemiBold" Foreground="#10b981"/>
                     <TextBlock Text="{Binding TotalSnapshotsRecorded, StringFormat='Snapshots Saved: {0}'}" FontSize="11" Foreground="#94a3b8"/>
                 </StackPanel>
