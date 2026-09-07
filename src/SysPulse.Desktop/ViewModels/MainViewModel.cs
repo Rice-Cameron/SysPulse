@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -18,8 +19,9 @@ namespace SysPulse.Desktop.ViewModels;
 public partial class MainViewModel : ViewModelBase{
     private readonly ILinuxMetricCollector _linuxMetricCollector;
     private readonly ISnapshotRepository _snapshotRepository;
-    private readonly PeriodicTimer _periodicTimer;
+    private PeriodicTimer _periodicTimer;
     private CancellationTokenSource? _cancellationTokenSource;
+    private DateTime _lastAutoSnapshotTimeUtc=DateTime.UtcNow;
 
     // System Overview
     [ObservableProperty]
@@ -85,12 +87,18 @@ public partial class MainViewModel : ViewModelBase{
     private bool _isAutoSnapshotEnabled=true;
     [ObservableProperty]
     private int _autoSnapshotIntervalMinutes=5;
+    [ObservableProperty]
+    private int _metricsUpdateIntervalSeconds=1;
 
     // Settings Draft / Pending State (Only applied on Save)
     [ObservableProperty]
     private bool _pendingIsAutoSnapshotEnabled=true;
     [ObservableProperty]
     private int _pendingAutoSnapshotIntervalMinutes=5;
+    [ObservableProperty]
+    private int _pendingMetricsUpdateIntervalSeconds=1;
+    [ObservableProperty]
+    private string _pendingMetricsUpdateIntervalDisplay="1 second (Fastest)";
     [ObservableProperty]
     private bool _hasUnsavedSettingsChanges=false;
     [ObservableProperty]
@@ -102,13 +110,11 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private int _totalSnapshotsRecorded;
 
-    private int _tickCountInt=0;
-
     public MainViewModel(ILinuxMetricCollector linuxMetricCollector, ISnapshotRepository snapshotRepository){
         _linuxMetricCollector=linuxMetricCollector;
         _snapshotRepository=snapshotRepository;
-        _periodicTimer=new PeriodicTimer(TimeSpan.FromSeconds(1));
         InitializeSettings();
+        _periodicTimer=new PeriodicTimer(TimeSpan.FromSeconds(MetricsUpdateIntervalSeconds));
         InitializeSystemInfo();
         StartMonitoringLoop();
     }
@@ -122,47 +128,64 @@ public partial class MainViewModel : ViewModelBase{
             _=LoadSnapshotsAsync();
         }else if(value == 2){
             DiscardUnsavedSettings();
+        }else{
+            DiscardUnsavedSettings();
         }
     }
 
     partial void OnPendingIsAutoSnapshotEnabledChanged(bool value){
-        HasUnsavedSettingsChanges=value != IsAutoSnapshotEnabled || PendingAutoSnapshotIntervalMinutes != AutoSnapshotIntervalMinutes;
+        UpdateHasUnsavedSettingsChanges();
     }
 
     partial void OnPendingAutoSnapshotIntervalMinutesChanged(int value){
-        HasUnsavedSettingsChanges=PendingIsAutoSnapshotEnabled != IsAutoSnapshotEnabled || value != AutoSnapshotIntervalMinutes;
+        UpdateHasUnsavedSettingsChanges();
+    }
+
+    partial void OnPendingMetricsUpdateIntervalSecondsChanged(int value){
+        PendingMetricsUpdateIntervalDisplay=FormatUpdateInterval(value);
+        UpdateHasUnsavedSettingsChanges();
+    }
+
+    private void UpdateHasUnsavedSettingsChanges(){
+        HasUnsavedSettingsChanges=PendingIsAutoSnapshotEnabled != IsAutoSnapshotEnabled || PendingAutoSnapshotIntervalMinutes != AutoSnapshotIntervalMinutes || PendingMetricsUpdateIntervalSeconds != MetricsUpdateIntervalSeconds;
     }
 
     private void DiscardUnsavedSettings(){
         PendingIsAutoSnapshotEnabled=IsAutoSnapshotEnabled;
         PendingAutoSnapshotIntervalMinutes=AutoSnapshotIntervalMinutes;
+        PendingMetricsUpdateIntervalSeconds=MetricsUpdateIntervalSeconds;
+        PendingMetricsUpdateIntervalDisplay=FormatUpdateInterval(MetricsUpdateIntervalSeconds);
         HasUnsavedSettingsChanges=false;
         SettingsStatusMessage=string.Empty;
     }
 
     private void InitializeSettings(){
         try{
-            // Read local settings file if present
+            // Read local settings file if present; File.ReadAllText and JsonDocument.Parse can throw IOException or JsonException
             string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             string settingsPath=Path.Combine(localDir, "settings.json");
             if(File.Exists(settingsPath)){
                 string text=File.ReadAllText(settingsPath);
-                if(text.Contains("\"EnableAutoSnapshot\": false")){
-                    IsAutoSnapshotEnabled=false;
+                using JsonDocument jsonDoc=JsonDocument.Parse(text);
+                JsonElement root=jsonDoc.RootElement;
+                if(root.TryGetProperty("EnableAutoSnapshot", out JsonElement autoProp)){
+                    IsAutoSnapshotEnabled=autoProp.GetBoolean();
                 }
-                for(int i=1;i<=120;i++){
-                    if(text.Contains($"\"AutoSnapshotIntervalMinutes\": {i}")){
-                        AutoSnapshotIntervalMinutes=i;
-                        break;
-                    }
+                if(root.TryGetProperty("AutoSnapshotIntervalMinutes", out JsonElement intervalProp)){
+                    AutoSnapshotIntervalMinutes=Math.Clamp(intervalProp.GetInt32(), 1, 120);
+                }
+                if(root.TryGetProperty("MetricsUpdateIntervalSeconds", out JsonElement updateProp)){
+                    MetricsUpdateIntervalSeconds=Math.Clamp(updateProp.GetInt32(), 1, 3600);
                 }
             }
         }
         catch{
-            // Fallback to defaults
+            // Fallback to defaults if settings read or JSON parsing fails
         }
         PendingIsAutoSnapshotEnabled=IsAutoSnapshotEnabled;
         PendingAutoSnapshotIntervalMinutes=AutoSnapshotIntervalMinutes;
+        PendingMetricsUpdateIntervalSeconds=MetricsUpdateIntervalSeconds;
+        PendingMetricsUpdateIntervalDisplay=FormatUpdateInterval(MetricsUpdateIntervalSeconds);
         HasUnsavedSettingsChanges=false;
     }
 
@@ -275,9 +298,8 @@ public partial class MainViewModel : ViewModelBase{
                 StatusMessage=$"Updated at {DateTime.Now:T}";
             });
             // Periodic auto-snapshot
-            _tickCountInt++;
-            int targetSeconds=Math.Max(60, AutoSnapshotIntervalMinutes * 60);
-            if(IsAutoSnapshotEnabled && _tickCountInt % targetSeconds == 0){
+            if(IsAutoSnapshotEnabled && (DateTime.UtcNow - _lastAutoSnapshotTimeUtc >= TimeSpan.FromMinutes(AutoSnapshotIntervalMinutes))){
+                _lastAutoSnapshotTimeUtc=DateTime.UtcNow;
                 // SaveSnapshotAsync executes database inserts and can throw DbUpdateException or DbException
                 await SaveSnapshotAsync(cpu, mem, drives, nets, "Auto Snapshot", ct);
             }
@@ -411,10 +433,20 @@ public partial class MainViewModel : ViewModelBase{
     }
 
     [RelayCommand]
+    private void SetMetricsIntervalPreset(string secondsString){
+        if(int.TryParse(secondsString, out int sec)){
+            PendingMetricsUpdateIntervalSeconds=Math.Clamp(sec, 1, 3600);
+            PendingMetricsUpdateIntervalDisplay=FormatUpdateInterval(PendingMetricsUpdateIntervalSeconds);
+            UpdateHasUnsavedSettingsChanges();
+            SettingsStatusMessage=$"Update frequency set to {PendingMetricsUpdateIntervalDisplay}. Click Save Settings to persist.";
+        }
+    }
+
+    [RelayCommand]
     private void SetIntervalPreset(string minutesString){
         if(int.TryParse(minutesString, out int min)){
             PendingAutoSnapshotIntervalMinutes=Math.Clamp(min, 1, 120);
-            HasUnsavedSettingsChanges=true;
+            UpdateHasUnsavedSettingsChanges();
             SettingsStatusMessage=$"Interval set to {PendingAutoSnapshotIntervalMinutes} minute(s). Click Save Settings to persist.";
         }
     }
@@ -429,8 +461,10 @@ public partial class MainViewModel : ViewModelBase{
     private void ResetSettings(){
         PendingIsAutoSnapshotEnabled=true;
         PendingAutoSnapshotIntervalMinutes=5;
-        HasUnsavedSettingsChanges=true;
-        SettingsStatusMessage="Settings set to defaults (5 minutes, enabled). Click Save Settings to persist.";
+        PendingMetricsUpdateIntervalSeconds=1;
+        PendingMetricsUpdateIntervalDisplay=FormatUpdateInterval(1);
+        UpdateHasUnsavedSettingsChanges();
+        SettingsStatusMessage="Settings set to defaults (1s refresh, 5m snapshots, enabled). Click Save Settings to persist.";
     }
 
     [RelayCommand]
@@ -439,14 +473,17 @@ public partial class MainViewModel : ViewModelBase{
             // File.WriteAllTextAsync writes configuration JSON to application data folder
             IsAutoSnapshotEnabled=PendingIsAutoSnapshotEnabled;
             AutoSnapshotIntervalMinutes=PendingAutoSnapshotIntervalMinutes;
+            MetricsUpdateIntervalSeconds=PendingMetricsUpdateIntervalSeconds;
+            _periodicTimer.Period=TimeSpan.FromSeconds(MetricsUpdateIntervalSeconds);
             HasUnsavedSettingsChanges=false;
             string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
             string settingsPath=Path.Combine(localDir, "settings.json");
-            string jsonContent=$"{{\n  \"EnableAutoSnapshot\": {(IsAutoSnapshotEnabled ? "true" : "false")},\n  \"AutoSnapshotIntervalMinutes\": {AutoSnapshotIntervalMinutes}\n}}";
+            string jsonContent=$"{{\n  \"EnableAutoSnapshot\": {(IsAutoSnapshotEnabled ? "true" : "false")},\n  \"AutoSnapshotIntervalMinutes\": {AutoSnapshotIntervalMinutes},\n  \"MetricsUpdateIntervalSeconds\": {MetricsUpdateIntervalSeconds}\n}}";
             await File.WriteAllTextAsync(settingsPath, jsonContent);
             SettingsStatusMessage="Settings saved successfully.";
-            StatusMessage=$"Settings saved at {DateTime.Now:T}";
+            StatusMessage=$"Settings saved at {DateTime.Now:T} (refresh: {FormatUpdateInterval(MetricsUpdateIntervalSeconds)})";
+            await PollMetricsAsync(CancellationToken.None);
         }
         catch(Exception ex){
             SettingsStatusMessage=$"Error saving settings: {ex.Message}";
@@ -485,5 +522,28 @@ public partial class MainViewModel : ViewModelBase{
             return $"{(int)uptime.TotalDays}d {uptime.Hours}h {uptime.Minutes}m";
         }
         return $"{uptime.Hours}h {uptime.Minutes}m {uptime.Seconds}s";
+    }
+
+    private static string FormatUpdateInterval(int seconds){
+        if(seconds <= 1){
+            return "1 second (Fastest)";
+        }
+        if(seconds < 60){
+            return $"{seconds} seconds";
+        }
+        if(seconds < 3600){
+            int m=seconds / 60;
+            int s=seconds % 60;
+            if(s == 0){
+                return m == 1 ? "1 minute" : $"{m} minutes";
+            }
+            return $"{m}m {s}s";
+        }
+        int h=seconds / 3600;
+        int remM=(seconds % 3600) / 60;
+        if(remM == 0){
+            return h == 1 ? "1 hour (Slowest)" : $"{h} hours";
+        }
+        return $"{h}h {remM}m";
     }
 }
