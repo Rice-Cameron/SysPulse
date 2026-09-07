@@ -489,81 +489,15 @@
 
                                 <!-- Standard Interval Dropdown Selector -->
                                 <Border Background="#24263a" CornerRadius="8" Padding="16">
-                                    <StackPanel Spacing="14">
-                                        <Grid ColumnDefinitions="Auto, *">
-                                            <TextBlock Grid.Column="0" Text="Select Interval:" FontSize="12" FontWeight="SemiBold" 
-                                                       Foreground="#cbd5e1" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                                            <ComboBox Grid.Column="1" ItemsSource="{Binding IntervalPresetNames}" 
-                                                      SelectedItem="{Binding SelectedIntervalPresetName}"
-                                                      HorizontalAlignment="Left" Width="220"
-                                                      Background="#1c1d2d" Foreground="#f8fafc"
-                                                      CornerRadius="8" FontSize="12"/>
-                                        </Grid>
-
-                                        <!-- Quick Selection Pills -->
-                                        <StackPanel Spacing="8">
-                                            <TextBlock Text="Quick Selection:" FontSize="11" FontWeight="SemiBold" Foreground="#64748b"/>
-                                            <WrapPanel Orientation="Horizontal">
-                                                <TextBlock Text="Seconds:" FontSize="11" Foreground="#94a3b8" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="1"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="1s" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="2"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="2s" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="3"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="3s" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="5"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="5s" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="10"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="10s" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="30"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="30s" FontSize="11"/>
-                                                </Button>
-                                                
-                                                <Border Width="1" Height="20" Background="#3a3c55" Margin="6,2,12,6" VerticalAlignment="Center"/>
-                                                
-                                                <TextBlock Text="Minutes:" FontSize="11" Foreground="#94a3b8" VerticalAlignment="Center" Margin="0,0,8,6"/>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="60"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="1 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="120"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="2 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="300"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="5 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="600"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="10 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="900"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="15 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="1800"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="30 Min" FontSize="11"/>
-                                                </Button>
-                                                <Button Command="{Binding SetMetricsIntervalPresetCommand}" CommandParameter="3600"
-                                                        Background="#1c1d2d" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="0,0,6,6">
-                                                    <TextBlock Text="1 Hour" FontSize="11"/>
-                                                </Button>
-                                            </WrapPanel>
-                                        </StackPanel>
-                                    </StackPanel>
+                                    <Grid ColumnDefinitions="Auto, *">
+                                        <TextBlock Grid.Column="0" Text="Select Interval:" FontSize="12" FontWeight="SemiBold" 
+                                                   Foreground="#cbd5e1" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding IntervalPresetNames}" 
+                                                  SelectedItem="{Binding SelectedIntervalPresetName}"
+                                                  HorizontalAlignment="Left" Width="220"
+                                                  Background="#1c1d2d" Foreground="#f8fafc"
+                                                  CornerRadius="8" FontSize="12"/>
+                                    </Grid>
                                 </Border>
 
                                 <!-- Custom Duration Input -->

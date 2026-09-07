@@ -514,15 +514,6 @@ public partial class MainViewModel : ViewModelBase{
     }
 
     [RelayCommand]
-    private void SetMetricsIntervalPreset(string secondsString){
-        if(int.TryParse(secondsString, out int sec)){
-            PendingMetricsUpdateIntervalSeconds=Math.Clamp(sec, 1, 3600);
-            UpdateHasUnsavedSettingsChanges();
-            SettingsStatusMessage=$"Update frequency set to {PendingMetricsUpdateIntervalDisplay}. Click Save Settings to persist.";
-        }
-    }
-
-    [RelayCommand]
     private void SetIntervalPreset(string minutesString){
         if(int.TryParse(minutesString, out int min)){
             PendingAutoSnapshotIntervalMinutes=Math.Clamp(min, 1, 120);
