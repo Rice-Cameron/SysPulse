@@ -13,21 +13,18 @@ using SysPulse.Desktop.Views;
 
 namespace SysPulse.Desktop;
 
-public partial class App : Application
-{
+public partial class App : Application {
     public IServiceProvider? Services { get; private set; }
 
-    public override void Initialize()
-    {
+    public override void Initialize() {
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
-    {
-        var services = new ServiceCollection();
+    public override void OnFrameworkInitializationCompleted() {
+        ServiceCollection services = new ServiceCollection();
 
         // 1. Load Configuration
-        var config = new ConfigurationBuilder()
+        IConfigurationRoot config = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
@@ -39,14 +36,11 @@ public partial class App : Application
 
         // 3. Register EF Core Database (MySQL/MariaDB with automatic SQLite fallback)
         string provider = config["DatabaseProvider"] ?? "SQLite";
-        if (provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase))
-        {
+        if (provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase)) {
             string? connStr = config.GetConnectionString("MySQL");
             services.AddDbContext<SysPulseDbContext>(options =>
                 options.UseMySQL(connStr ?? "Server=localhost;Database=syspulse;User=root;"));
-        }
-        else
-        {
+        } else {
             string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
             string dbPath = Path.Combine(localDir, "syspulse.db");
@@ -60,13 +54,11 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var mainVm = Services.GetRequiredService<MainViewModel>();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = mainVm
-            };
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+            MainViewModel mainViewModel = Services.GetRequiredService<MainViewModel>();
+            MainWindow mainWindow = new MainWindow();
+            mainWindow.DataContext = mainViewModel;
+            desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();

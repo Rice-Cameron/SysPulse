@@ -16,8 +16,7 @@ public record MemoryMetrics(
     long SwapTotalBytes,
     long SwapUsedBytes,
     double SwapPercent
-)
-{
+) {
     public double TotalGB => TotalBytes / (1024.0 * 1024 * 1024);
     public double UsedGB => UsedBytes / (1024.0 * 1024 * 1024);
     public double AvailableGB => AvailableBytes / (1024.0 * 1024 * 1024);
@@ -33,8 +32,7 @@ public record DriveMetrics(
     long UsedBytes,
     double UsagePercent,
     string DriveFormat
-)
-{
+) {
     public double TotalGB => TotalBytes / (1024.0 * 1024 * 1024);
     public double UsedGB => UsedBytes / (1024.0 * 1024 * 1024);
     public double FreeGB => AvailableFreeBytes / (1024.0 * 1024 * 1024);
@@ -54,8 +52,7 @@ public record ProcessMetric(
     double CpuPercent,
     long WorkingSetBytes,
     string? User
-)
-{
+) {
     public double MemoryMB => WorkingSetBytes / (1024.0 * 1024);
 }
 
