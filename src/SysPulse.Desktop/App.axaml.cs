@@ -22,18 +22,14 @@ public partial class App : Application{
 
     public override void OnFrameworkInitializationCompleted(){
         ServiceCollection services=new ServiceCollection();
-
         // 1. Load Configuration
         IConfigurationRoot config=new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
-
         services.AddSingleton<IConfiguration>(config);
-
         // 2. Register Linux Metrics Service
         services.AddSingleton<ILinuxMetricCollector, LinuxMetricCollector>();
-
         // 3. Register EF Core Database (MySQL/MariaDB with automatic SQLite fallback)
         string provider=config["DatabaseProvider"] ?? "SQLite";
         if(provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase)){
@@ -47,20 +43,16 @@ public partial class App : Application{
             services.AddDbContext<SysPulseDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
         }
-
         // 4. Register Repositories and ViewModels
         services.AddTransient<ISnapshotRepository, SnapshotRepository>();
         services.AddSingleton<MainViewModel>();
-
         Services=services.BuildServiceProvider();
-
         if(ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop){
             MainViewModel mainViewModel=Services.GetRequiredService<MainViewModel>();
             MainWindow mainWindow=new MainWindow();
             mainWindow.DataContext=mainViewModel;
             desktop.MainWindow=mainWindow;
         }
-
         base.OnFrameworkInitializationCompleted();
     }
 }

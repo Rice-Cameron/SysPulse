@@ -25,7 +25,6 @@ public class SysPulseDbContext : DbContext{
 
     protected override void OnModelCreating(ModelBuilder modelBuilder){
         base.OnModelCreating(modelBuilder);
-
         modelBuilder.Entity<SystemSnapshot>(entity =>{
             entity.HasIndex(e => e.TimestampUtc);
         });

@@ -76,7 +76,6 @@ public partial class MainViewModel : ViewModelBase{
         _linuxMetricCollector=linuxMetricCollector;
         _snapshotRepository=snapshotRepository;
         _periodicTimer=new PeriodicTimer(TimeSpan.FromSeconds(1));
-
         InitializeSystemInfo();
         StartMonitoringLoop();
     }
@@ -111,10 +110,8 @@ public partial class MainViewModel : ViewModelBase{
             catch(Exception ex){
                 Dispatcher.UIThread.Post(() => StatusMessage=$"DB Init: {ex.Message}");
             }
-
             // Initial poll
             await PollMetricsAsync(_cancellationTokenSource.Token);
-
             // WaitForNextTickAsync can throw OperationCanceledException when token is cancelled
             while(!_cancellationTokenSource.Token.IsCancellationRequested && await _periodicTimer.WaitForNextTickAsync(_cancellationTokenSource.Token)){
                 await PollMetricsAsync(_cancellationTokenSource.Token);
@@ -130,31 +127,25 @@ public partial class MainViewModel : ViewModelBase{
             Task<IReadOnlyList<DriveMetrics>> driveTask=_linuxMetricCollector.GetDriveMetricsAsync(ct);
             Task<IReadOnlyList<NetworkMetrics>> netTask=_linuxMetricCollector.GetNetworkMetricsAsync(ct);
             Task<IReadOnlyList<ProcessMetric>> procTask=_linuxMetricCollector.GetTopProcessesAsync(8, ct);
-
             await Task.WhenAll(cpuTask, memTask, driveTask, netTask, procTask);
-
             CpuMetrics cpu=await cpuTask;
             MemoryMetrics mem=await memTask;
             IReadOnlyList<DriveMetrics> drives=await driveTask;
             IReadOnlyList<NetworkMetrics> nets=await netTask;
             IReadOnlyList<ProcessMetric> procs=await procTask;
             SystemOverview overview=_linuxMetricCollector.GetSystemOverview();
-
             Dispatcher.UIThread.Post(() =>{
                 // Update Overview
                 Uptime=FormatUptime(overview.Uptime);
-
                 // Update CPU
                 CpuUsagePercent=cpu.UsagePercent;
                 CpuModel=cpu.ModelName;
                 CoreCount=cpu.CoreCount;
                 CpuClockGhz=cpu.CurrentClockSpeedGHz;
-
                 PerCoreUsage.Clear();
                 for(int i=0;i<cpu.PerCoreUsage.Count;i++){
                     PerCoreUsage.Add(cpu.PerCoreUsage[i]);
                 }
-
                 // Update Memory
                 MemoryUsagePercent=mem.UsagePercent;
                 MemoryUsedGb=mem.UsedGB;
@@ -163,7 +154,6 @@ public partial class MainViewModel : ViewModelBase{
                 SwapUsagePercent=mem.SwapPercent;
                 SwapUsedGb=mem.SwapUsedGB;
                 SwapTotalGb=mem.SwapTotalGB;
-
                 // Update Drives
                 Drives.Clear();
                 for(int i=0;i<drives.Count;i++){
@@ -178,7 +168,6 @@ public partial class MainViewModel : ViewModelBase{
                     driveItem.Format=d.DriveFormat;
                     Drives.Add(driveItem);
                 }
-
                 // Update Network
                 NetworkInterfaces.Clear();
                 for(int i=0;i<nets.Count;i++){
@@ -191,7 +180,6 @@ public partial class MainViewModel : ViewModelBase{
                     netItem.TotalSentMB=n.TotalBytesSent / (1024.0 * 1024.0);
                     NetworkInterfaces.Add(netItem);
                 }
-
                 // Update Top Processes
                 TopProcesses.Clear();
                 for(int i=0;i<procs.Count;i++){
@@ -202,10 +190,8 @@ public partial class MainViewModel : ViewModelBase{
                     procItem.MemoryMB=p.MemoryMB;
                     TopProcesses.Add(procItem);
                 }
-
                 StatusMessage=$"Updated at {DateTime.Now:T}";
             });
-
             // Periodic auto-snapshot (every 60 ticks / 1 minute)
             _tickCountInt++;
             if(IsAutoLogging && _tickCountInt % 60 == 0){
@@ -226,7 +212,6 @@ public partial class MainViewModel : ViewModelBase{
             MemoryMetrics mem=await _linuxMetricCollector.GetMemoryMetricsAsync();
             IReadOnlyList<DriveMetrics> drives=await _linuxMetricCollector.GetDriveMetricsAsync();
             IReadOnlyList<NetworkMetrics> nets=await _linuxMetricCollector.GetNetworkMetricsAsync();
-
             await SaveSnapshotAsync(cpu, mem, drives, nets, "Manual Snapshot");
             StatusMessage=$"Saved snapshot #{TotalSnapshotsRecorded} to DB at {DateTime.Now:T}";
         }
@@ -249,7 +234,6 @@ public partial class MainViewModel : ViewModelBase{
         CancellationToken ct=default){
         DriveMetrics? primaryDrive=drives.FirstOrDefault(d => d.MountPoint == "/") ?? drives.FirstOrDefault();
         NetworkMetrics? primaryNet=nets.FirstOrDefault();
-
         SystemSnapshot snapshot=new SystemSnapshot();
         snapshot.TimestampUtc=DateTime.UtcNow;
         snapshot.CpuUsagePercent=cpu.UsagePercent;
@@ -261,7 +245,6 @@ public partial class MainViewModel : ViewModelBase{
         snapshot.NetworkDownloadKbps=primaryNet != null ? primaryNet.DownloadSpeedKBps : 0;
         snapshot.NetworkUploadKbps=primaryNet != null ? primaryNet.UploadSpeedKBps : 0;
         snapshot.Note=note;
-
         // _snapshotRepository.SaveSnapshotAsync can throw DbUpdateException or DbException
         await _snapshotRepository.SaveSnapshotAsync(snapshot, ct);
         Dispatcher.UIThread.Post(() => TotalSnapshotsRecorded++);

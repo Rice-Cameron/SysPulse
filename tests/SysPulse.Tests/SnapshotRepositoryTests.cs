@@ -15,14 +15,11 @@ public class SnapshotRepositoryTests : IDisposable{
     public SnapshotRepositoryTests(){
         _sqliteConnection=new SqliteConnection("DataSource=:memory:");
         _sqliteConnection.Open();
-
         DbContextOptions<SysPulseDbContext> options=new DbContextOptionsBuilder<SysPulseDbContext>()
             .UseSqlite(_sqliteConnection)
             .Options;
-
         _sysPulseDbContext=new SysPulseDbContext(options);
         _sysPulseDbContext.Database.EnsureCreated();
-
         _snapshotRepository=new SnapshotRepository(_sysPulseDbContext);
     }
 
@@ -39,9 +36,7 @@ public class SnapshotRepositoryTests : IDisposable{
         snapshot.NetworkDownloadKbps=105.4;
         snapshot.NetworkUploadKbps=24.1;
         snapshot.Note="Test Snapshot";
-
         await _snapshotRepository.SaveSnapshotAsync(snapshot);
-
         IReadOnlyList<SystemSnapshot> recent=await _snapshotRepository.GetRecentSnapshotsAsync(10);
         Assert.Single(recent);
         Assert.Equal(25.5, recent[0].CpuUsagePercent);
@@ -57,7 +52,6 @@ public class SnapshotRepositoryTests : IDisposable{
             snapshot.Note=$"Snap #{i}";
             await _snapshotRepository.SaveSnapshotAsync(snapshot);
         }
-
         IReadOnlyList<SystemSnapshot> list=await _snapshotRepository.GetRecentSnapshotsAsync(3);
         Assert.Equal(3, list.Count);
         Assert.Equal("Snap #5", list[0].Note);
