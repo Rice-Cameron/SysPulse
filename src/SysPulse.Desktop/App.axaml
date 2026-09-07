@@ -3,11 +3,29 @@
              x:Class="SysPulse.Desktop.App"
              xmlns:local="using:SysPulse.Desktop"
              RequestedThemeVariant="Dark">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
+
+    <Application.Resources>
+        <!-- Default Dark Palette Brushes -->
+        <SolidColorBrush x:Key="SysPulseWindowBackgroundBrush" Color="#13141f" />
+        <SolidColorBrush x:Key="SysPulseCardBackgroundBrush" Color="#1c1d2d" />
+        <SolidColorBrush x:Key="SysPulseCardSecondaryBackgroundBrush" Color="#24263a" />
+        <SolidColorBrush x:Key="SysPulseInputBackgroundBrush" Color="#2a2c42" />
+        <SolidColorBrush x:Key="SysPulseAccentBrush" Color="#3b82f6" />
+        <SolidColorBrush x:Key="SysPulseTextPrimaryBrush" Color="#f8fafc" />
+        <SolidColorBrush x:Key="SysPulseTextSecondaryBrush" Color="#cbd5e1" />
+        <SolidColorBrush x:Key="SysPulseTextMutedBrush" Color="#94a3b8" />
+        <SolidColorBrush x:Key="SysPulseTextSubduedBrush" Color="#64748b" />
+        <SolidColorBrush x:Key="SysPulseSuccessBrush" Color="#10b981" />
+        <SolidColorBrush x:Key="SysPulseCpuBrush" Color="#38bdf8" />
+        <SolidColorBrush x:Key="SysPulseMemoryBrush" Color="#34d399" />
+        <SolidColorBrush x:Key="SysPulseSwapBrush" Color="#fb923c" />
+        <SolidColorBrush x:Key="SysPulseNetworkBrush" Color="#c084fc" />
+        <SolidColorBrush x:Key="SysPulseDangerBrush" Color="#ef4444" />
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
