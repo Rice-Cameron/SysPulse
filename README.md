@@ -82,9 +82,30 @@ Works out-of-the-box with Omnisharp or Roslyn LSP for C# completion.
 
 ---
 
-## How to Reproduce This Setup Yourself From Scratch
+## Database Configuration (MySQL / MariaDB vs SQLite)
 
-Here is the exact sequence of terminal commands used to create this solution from a clean slate:
+SysPulse includes zero-config fallback to **SQLite** so the application runs immediately without requiring a running database server.
+
+To switch to **MySQL** or **MariaDB**:
+1. Open `src/SysPulse.Desktop/appsettings.json`:
+   ```json
+   {
+     "DatabaseProvider": "MySQL",
+     "ConnectionStrings": {
+       "MySQL": "Server=localhost;Port=3306;Database=syspulse;User=your_user;Password=your_password;"
+     }
+   }
+   ```
+2. EF Core will automatically connect to your MariaDB/MySQL server, create the tables if they don't exist (`EnsureCreatedAsync`), and record snapshots.
+
+---
+
+## Appendix: How This Solution Was Bootstrapped (CLI Reference)
+
+> [!NOTE]
+> **You do not need to run these commands if you cloned this repository.** All project files, solution configurations, and package dependencies are already committed into Git. Simply run `dotnet run --project src/SysPulse.Desktop` or `dotnet build`.
+
+The commands below are documented purely for reference to illustrate how a multi-project .NET, Avalonia, and EF Core solution is constructed from scratch using only the `dotnet` CLI:
 
 ```bash
 # 1. Create directory and modern solution
@@ -120,21 +141,3 @@ dotnet add src/SysPulse.Desktop/SysPulse.Desktop.csproj package Microsoft.Extens
 dotnet add src/SysPulse.Desktop/SysPulse.Desktop.csproj package Microsoft.Extensions.Configuration.Json
 dotnet add tests/SysPulse.Tests/SysPulse.Tests.csproj package Microsoft.EntityFrameworkCore.Sqlite
 ```
-
----
-
-## Database Configuration (MySQL / MariaDB vs SQLite)
-
-SysPulse includes zero-config fallback to **SQLite** so the application runs immediately without requiring a running database server.
-
-To switch to **MySQL** or **MariaDB**:
-1. Open `src/SysPulse.Desktop/appsettings.json`:
-   ```json
-   {
-     "DatabaseProvider": "MySQL",
-     "ConnectionStrings": {
-       "MySQL": "Server=localhost;Port=3306;Database=syspulse;User=your_user;Password=your_password;"
-     }
-   }
-   ```
-2. EF Core will automatically connect to your MariaDB/MySQL server, create the tables if they don't exist (`EnsureCreatedAsync`), and record snapshots.
