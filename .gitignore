@@ -28,3 +28,6 @@ syspulse.db
 ## OS generated
 .DS_Store
 Thumbs.db
+
+## Publish output
+publish/

@@ -68,6 +68,38 @@ dotnet build
 ```bash
 dotnet test
 ```
+
+### 5. Create a Standalone Linux Executable
+
+Publishing SysPulse this way creates a single file that includes the .NET runtime, so it can run on another compatible 64-bit Linux desktop without installing .NET first.
+
+```bash
+cd ~/Documents/github/SysPulse
+
+dotnet publish src/SysPulse.Desktop/SysPulse.Desktop.csproj \
+  --configuration Release \
+  --runtime linux-x64 \
+  --self-contained true \
+  -p:PublishSingleFile=true \
+  -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:DebugType=None \
+  --output ./publish/linux-x64
+```
+
+The executable and its configuration file are created in `publish/linux-x64/`:
+
+```bash
+./publish/linux-x64/SysPulse.Desktop
+```
+
+To launch it with the shorter `syspulse` command from any terminal, create a symlink in your personal bin directory:
+
+```bash
+mkdir -p ~/.local/bin
+ln -sf ~/Documents/github/SysPulse/publish/linux-x64/SysPulse.Desktop ~/.local/bin/syspulse
+```
+
+If `syspulse` is not found, add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`, then open a new terminal. Use `linux-arm64` in place of `linux-x64` when publishing for ARM64 hardware.
 ---
 
 ## Database Configuration (MySQL / MariaDB vs SQLite)
