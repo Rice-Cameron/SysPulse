@@ -34,7 +34,8 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
                     }
                 }
             }
-        }catch{
+        }
+        catch{
             _cpuModelString="Generic Linux CPU";
         }
         _cpuModelString??="Linux Processor";
@@ -114,7 +115,8 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
                     currentClockGhz=Math.Round(freqKhz / 1_000_000.0, 2);
                 }
             }
-        }catch{
+        }
+        catch{
             // Fallback when cpufreq scaling sysfs driver is unavailable in this kernel
         }
 
@@ -216,7 +218,8 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
                     drive.DriveFormat
                 ));
             }
-        }catch{
+        }
+        catch{
             // Fallback when storage subsystem is inaccessible
         }
 
@@ -293,13 +296,16 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
                         p.WorkingSet64,
                         null
                     ));
-                }catch{
+                }
+                catch{
                     // Process exited during query
-                }finally{
+                }
+                finally{
                     p.Dispose();
                 }
             }
-        }catch{
+        }
+        catch{
             // Process enumeration security or permission exceptions
         }
 
@@ -324,7 +330,8 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
                     uptime=TimeSpan.FromSeconds(secs);
                 }
             }
-        }catch{
+        }
+        catch{
             // Fallback when /proc/uptime is unreadable
         }
 
@@ -332,7 +339,8 @@ public class LinuxMetricCollector : ILinuxMetricCollector{
         try{
             // Process.GetProcesses() may throw PlatformNotSupportedException or SecurityException
             totalProcesses=Process.GetProcesses().Length;
-        }catch{
+        }
+        catch{
             // Fallback
         }
 

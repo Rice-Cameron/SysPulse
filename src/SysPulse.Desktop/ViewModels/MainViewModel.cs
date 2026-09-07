@@ -93,7 +93,8 @@ public partial class MainViewModel : ViewModelBase{
             OsDescription=overview.OsDescription;
             Architecture=overview.Architecture;
             Uptime=FormatUptime(overview.Uptime);
-        }catch(Exception ex){
+        }
+        catch(Exception ex){
             StatusMessage=$"Overview error: {ex.Message}";
         }
     }
@@ -106,7 +107,8 @@ public partial class MainViewModel : ViewModelBase{
                 await _snapshotRepository.EnsureDatabaseCreatedAsync(_cancellationTokenSource.Token);
                 IReadOnlyList<SystemSnapshot> recentSnapshots=await _snapshotRepository.GetRecentSnapshotsAsync(1, _cancellationTokenSource.Token);
                 Dispatcher.UIThread.Post(() => TotalSnapshotsRecorded=recentSnapshots.Count);
-            }catch(Exception ex){
+            }
+            catch(Exception ex){
                 Dispatcher.UIThread.Post(() => StatusMessage=$"DB Init: {ex.Message}");
             }
 
@@ -210,7 +212,8 @@ public partial class MainViewModel : ViewModelBase{
                 // SaveSnapshotAsync executes database inserts and can throw DbUpdateException or DbException
                 await SaveSnapshotAsync(cpu, mem, drives, nets, "Auto Snapshot", ct);
             }
-        }catch(Exception ex){
+        }
+        catch(Exception ex){
             Dispatcher.UIThread.Post(() => StatusMessage=$"Polling warning: {ex.Message}");
         }
     }
@@ -226,7 +229,8 @@ public partial class MainViewModel : ViewModelBase{
 
             await SaveSnapshotAsync(cpu, mem, drives, nets, "Manual Snapshot");
             StatusMessage=$"Saved snapshot #{TotalSnapshotsRecorded} to DB at {DateTime.Now:T}";
-        }catch(Exception ex){
+        }
+        catch(Exception ex){
             StatusMessage=$"Snapshot error: {ex.Message}";
         }
     }
