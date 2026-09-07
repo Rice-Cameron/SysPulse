@@ -1,0 +1,30 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio & JetBrains & VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.userprefs
+*.suo
+*.userosscache
+*.sln.docstates
+
+## .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## SQLite local database files
+*.db
+*.db-shm
+*.db-wal
+syspulse.db
+
+## OS generated
+.DS_Store
+Thumbs.db
