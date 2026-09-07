@@ -50,7 +50,7 @@
                     </Button>
                     <Button Command="{Binding TakeSnapshotCommand}" 
                             Background="#3b82f6" Foreground="White" CornerRadius="8" Padding="12,6">
-                        <TextBlock Text="📸 Snapshot DB" FontSize="12" FontWeight="SemiBold"/>
+                        <TextBlock Text="Snapshot DB" FontSize="12" FontWeight="SemiBold"/>
                     </Button>
                 </StackPanel>
             </Grid>
