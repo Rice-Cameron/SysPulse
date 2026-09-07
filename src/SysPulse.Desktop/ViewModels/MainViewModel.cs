@@ -67,8 +67,6 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private int _selectedTabIndex=0;
     [ObservableProperty]
-    private string _customSnapshotNote=string.Empty;
-    [ObservableProperty]
     private string _statusMessage="Ready";
     [ObservableProperty]
     private int _totalSnapshotsRecorded;
@@ -227,9 +225,7 @@ public partial class MainViewModel : ViewModelBase{
             MemoryMetrics mem=await _linuxMetricCollector.GetMemoryMetricsAsync();
             IReadOnlyList<DriveMetrics> drives=await _linuxMetricCollector.GetDriveMetricsAsync();
             IReadOnlyList<NetworkMetrics> nets=await _linuxMetricCollector.GetNetworkMetricsAsync();
-            string note=string.IsNullOrWhiteSpace(CustomSnapshotNote) ? "Manual Snapshot" : CustomSnapshotNote.Trim();
-            await SaveSnapshotAsync(cpu, mem, drives, nets, note);
-            CustomSnapshotNote=string.Empty;
+            await SaveSnapshotAsync(cpu, mem, drives, nets, "Manual Snapshot");
             StatusMessage=$"Saved snapshot to {DatabaseProviderName} at {DateTime.Now:T}";
             if(SelectedTabIndex == 1){
                 await LoadSnapshotsAsync();
