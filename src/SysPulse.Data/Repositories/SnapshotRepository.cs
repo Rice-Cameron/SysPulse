@@ -65,4 +65,13 @@ public class SnapshotRepository : ISnapshotRepository{
         await _sysPulseDbContext.SaveChangesAsync(ct);
         return true;
     }
+
+    public async Task<int> DeleteAllSnapshotsAsync(CancellationToken ct=default){
+        // ToListAsync, RemoveRange, and SaveChangesAsync can throw DbException
+        List<SystemSnapshot> all=await _sysPulseDbContext.Snapshots.ToListAsync(ct);
+        int count=all.Count;
+        _sysPulseDbContext.Snapshots.RemoveRange(all);
+        await _sysPulseDbContext.SaveChangesAsync(ct);
+        return count;
+    }
 }

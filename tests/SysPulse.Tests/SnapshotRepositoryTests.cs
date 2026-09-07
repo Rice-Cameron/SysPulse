@@ -96,6 +96,20 @@ public class SnapshotRepositoryTests : IDisposable{
         Assert.Empty(afterDelete);
     }
 
+    [Fact]
+    public async Task DeleteAllSnapshotsAsync_DeletesAllRecords(){
+        SystemSnapshot s1=new SystemSnapshot();
+        s1.Hostname="host-a";
+        await _snapshotRepository.SaveSnapshotAsync(s1);
+        SystemSnapshot s2=new SystemSnapshot();
+        s2.Hostname="host-b";
+        await _snapshotRepository.SaveSnapshotAsync(s2);
+        int deletedCount=await _snapshotRepository.DeleteAllSnapshotsAsync();
+        Assert.True(deletedCount >= 2);
+        IReadOnlyList<SystemSnapshot> remaining=await _snapshotRepository.GetSnapshotsAsync();
+        Assert.Empty(remaining);
+    }
+
     public void Dispose(){
         _sysPulseDbContext.Dispose();
         _sqliteConnection.Dispose();

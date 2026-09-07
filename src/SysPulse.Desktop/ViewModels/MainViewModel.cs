@@ -72,6 +72,8 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private bool _isLoadingSnapshots;
     [ObservableProperty]
+    private bool _isDeleteAllModalOpen=false;
+    [ObservableProperty]
     private string _databaseProviderName="SQLite";
     [ObservableProperty]
     private int _selectedTabIndex=0;
@@ -342,6 +344,33 @@ public partial class MainViewModel : ViewModelBase{
         }
         catch(Exception ex){
             StatusMessage=$"Delete snapshot error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RequestDeleteAllSnapshots(){
+        IsDeleteAllModalOpen=true;
+    }
+
+    [RelayCommand]
+    private void CancelDeleteAllSnapshots(){
+        IsDeleteAllModalOpen=false;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAllSnapshotsAsync(){
+        try{
+            // DeleteAllSnapshotsAsync executes DB delete and can throw DbException
+            int deletedCount=await _snapshotRepository.DeleteAllSnapshotsAsync();
+            SnapshotsList.Clear();
+            SelectedSnapshot=null;
+            TotalSnapshotsRecorded=0;
+            IsDeleteAllModalOpen=false;
+            StatusMessage=$"Deleted all {deletedCount} snapshots from {DatabaseProviderName}";
+        }
+        catch(Exception ex){
+            IsDeleteAllModalOpen=false;
+            StatusMessage=$"Delete all snapshots error: {ex.Message}";
         }
     }
 
