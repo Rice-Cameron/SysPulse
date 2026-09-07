@@ -68,28 +68,6 @@ dotnet build
 ```bash
 dotnet test
 ```
-
----
-
-## Free Code Editors on Linux
-
-You already have free editors installed on your system:
-
-### Visual Studio Code
-1. Open the project:
-   ```bash
-   code ~/Documents/github/SysPulse
-   ```
-2. Recommended Free Extensions:
-   - **C# Dev Kit** or **C#** (by Microsoft): Syntax highlighting, code navigation, IntelliSense, debugging.
-   - **Avalonia for VSCode** (by AvaloniaUI): Live XAML previewer and XAML autocomplete.
-
-### Neovim
-```bash
-nvim ~/Documents/github/SysPulse
-```
-Works out-of-the-box with Omnisharp or Roslyn LSP for C# completion.
-
 ---
 
 ## Database Configuration (MySQL / MariaDB vs SQLite)
