@@ -101,8 +101,8 @@ public class ThemeService : IDisposable{
         Application.Current.RequestedThemeVariant=ThemeVariant.Light;
         SetBrush("SysPulseWindowBackgroundBrush", "#f1f5f9");
         SetBrush("SysPulseCardBackgroundBrush", "#ffffff");
-        SetBrush("SysPulseCardSecondaryBackgroundBrush", "#e2e8f0");
-        SetBrush("SysPulseInputBackgroundBrush", "#cbd5e1");
+        SetBrush("SysPulseCardSecondaryBackgroundBrush", "#f1f5f9");
+        SetBrush("SysPulseInputBackgroundBrush", "#d8e0ea");
         SetBrush("SysPulseAccentBrush", "#2563eb");
         SetBrush("SysPulseTextPrimaryBrush", "#0f172a");
         SetBrush("SysPulseTextSecondaryBrush", "#334155");
