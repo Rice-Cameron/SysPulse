@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,13 +78,19 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private string _customSnapshotNote=string.Empty;
 
+    // Settings State
+    [ObservableProperty]
+    private bool _isAutoSnapshotEnabled=true;
+    [ObservableProperty]
+    private int _autoSnapshotIntervalMinutes=5;
+    [ObservableProperty]
+    private string _settingsStatusMessage=string.Empty;
+
     // Persistence & Status
     [ObservableProperty]
     private string _statusMessage="Ready";
     [ObservableProperty]
     private int _totalSnapshotsRecorded;
-    [ObservableProperty]
-    private bool _isAutoLogging=true;
 
     private int _tickCountInt=0;
 
@@ -91,6 +98,7 @@ public partial class MainViewModel : ViewModelBase{
         _linuxMetricCollector=linuxMetricCollector;
         _snapshotRepository=snapshotRepository;
         _periodicTimer=new PeriodicTimer(TimeSpan.FromSeconds(1));
+        InitializeSettings();
         InitializeSystemInfo();
         StartMonitoringLoop();
     }
@@ -102,6 +110,29 @@ public partial class MainViewModel : ViewModelBase{
     partial void OnSelectedTabIndexChanged(int value){
         if(value == 1){
             _=LoadSnapshotsAsync();
+        }
+    }
+
+    private void InitializeSettings(){
+        try{
+            // Read local settings file if present
+            string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
+            string settingsPath=Path.Combine(localDir, "settings.json");
+            if(File.Exists(settingsPath)){
+                string text=File.ReadAllText(settingsPath);
+                if(text.Contains("\"EnableAutoSnapshot\": false")){
+                    IsAutoSnapshotEnabled=false;
+                }
+                for(int i=1;i<=120;i++){
+                    if(text.Contains($"\"AutoSnapshotIntervalMinutes\": {i}")){
+                        AutoSnapshotIntervalMinutes=i;
+                        break;
+                    }
+                }
+            }
+        }
+        catch{
+            // Fallback to defaults
         }
     }
 
@@ -213,9 +244,10 @@ public partial class MainViewModel : ViewModelBase{
                 }
                 StatusMessage=$"Updated at {DateTime.Now:T}";
             });
-            // Periodic auto-snapshot (every 60 ticks / 1 minute)
+            // Periodic auto-snapshot
             _tickCountInt++;
-            if(IsAutoLogging && _tickCountInt % 60 == 0){
+            int targetSeconds=Math.Max(60, AutoSnapshotIntervalMinutes * 60);
+            if(IsAutoSnapshotEnabled && _tickCountInt % targetSeconds == 0){
                 // SaveSnapshotAsync executes database inserts and can throw DbUpdateException or DbException
                 await SaveSnapshotAsync(cpu, mem, drives, nets, "Auto Snapshot", ct);
             }
@@ -318,6 +350,39 @@ public partial class MainViewModel : ViewModelBase{
             await LoadSnapshotsAsync();
         }else{
             await PollMetricsAsync(CancellationToken.None);
+        }
+    }
+
+    [RelayCommand]
+    private void SetIntervalPreset(string minutesString){
+        if(int.TryParse(minutesString, out int min)){
+            AutoSnapshotIntervalMinutes=Math.Clamp(min, 1, 120);
+            SettingsStatusMessage=$"Interval updated to {AutoSnapshotIntervalMinutes} minute(s). Click Save Settings to persist.";
+        }
+    }
+
+    [RelayCommand]
+    private void ResetSettings(){
+        IsAutoSnapshotEnabled=true;
+        AutoSnapshotIntervalMinutes=5;
+        SettingsStatusMessage="Settings reset to defaults (5 minutes, enabled). Click Save Settings to persist.";
+    }
+
+    [RelayCommand]
+    private async Task SaveSettingsAsync(){
+        try{
+            // File.WriteAllTextAsync writes configuration JSON to application data folder
+            string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
+            Directory.CreateDirectory(localDir);
+            string settingsPath=Path.Combine(localDir, "settings.json");
+            string jsonContent=$"{{\n  \"EnableAutoSnapshot\": {(IsAutoSnapshotEnabled ? "true" : "false")},\n  \"AutoSnapshotIntervalMinutes\": {AutoSnapshotIntervalMinutes}\n}}";
+            await File.WriteAllTextAsync(settingsPath, jsonContent);
+            SettingsStatusMessage="Settings saved successfully.";
+            StatusMessage=$"Settings saved at {DateTime.Now:T}";
+        }
+        catch(Exception ex){
+            SettingsStatusMessage=$"Error saving settings: {ex.Message}";
+            StatusMessage=$"Settings error: {ex.Message}";
         }
     }
 

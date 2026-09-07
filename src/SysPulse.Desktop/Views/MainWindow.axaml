@@ -58,7 +58,7 @@
             </Grid>
         </Border>
 
-        <!-- 2. MAIN CONTENT TABS (LIVE MONITOR & SNAPSHOT ARCHIVE) -->
+        <!-- 2. MAIN CONTENT TABS (LIVE MONITOR, SNAPSHOT ARCHIVE, SETTINGS) -->
         <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Margin="0,0,0,10">
 
             <!-- TAB 1: LIVE MONITOR -->
@@ -387,6 +387,131 @@
                         </Border>
                     </Grid>
                 </Grid>
+            </TabItem>
+
+            <!-- TAB 3: SETTINGS MENU -->
+            <TabItem Header="Settings" FontSize="13" FontWeight="SemiBold">
+                <ScrollViewer Margin="0,10,0,0">
+                    <StackPanel Spacing="16" MaxWidth="780" HorizontalAlignment="Left">
+                        
+                        <!-- SECTION 1: AUTO SNAPSHOT CONFIGURATION -->
+                        <Border Background="#1c1d2d" CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="AUTOMATIC DATABASE SNAPSHOTS" FontSize="13" FontWeight="Bold" Foreground="#f8fafc"/>
+                                <TextBlock Text="Configure periodic background recording of system telemetry metrics to the active database."
+                                           FontSize="11" Foreground="#94a3b8" TextWrapping="Wrap"/>
+
+                                <!-- Toggle Enable / Disable -->
+                                <Border Background="#24263a" CornerRadius="8" Padding="14,10">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="Enable Auto Snapshots" FontSize="12" FontWeight="SemiBold" Foreground="#f8fafc"/>
+                                            <TextBlock Text="When enabled, SysPulse will capture snapshots periodically based on the interval below."
+                                                       FontSize="11" Foreground="#64748b"/>
+                                        </StackPanel>
+                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsAutoSnapshotEnabled}" 
+                                                      OnContent="Enabled" OffContent="Disabled" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Interval Configuration (Visible when enabled) -->
+                                <Border Background="#24263a" CornerRadius="8" Padding="16" 
+                                        IsVisible="{Binding IsAutoSnapshotEnabled}">
+                                    <StackPanel Spacing="12">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <TextBlock Grid.Column="0" Text="Time Between Snapshots" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding AutoSnapshotIntervalMinutes, StringFormat='{}{0} Minute(s)'}" 
+                                                       FontSize="13" FontWeight="Bold" Foreground="#38bdf8"/>
+                                        </Grid>
+
+                                        <!-- Slider -->
+                                        <Slider Minimum="1" Maximum="60" Value="{Binding AutoSnapshotIntervalMinutes}" 
+                                                TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,4"/>
+
+                                        <!-- Quick Preset Buttons -->
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="Presets:" FontSize="11" Foreground="#64748b" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="1"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="1 Min" FontSize="11"/>
+                                            </Button>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="5"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="5 Min" FontSize="11"/>
+                                            </Button>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="10"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="10 Min" FontSize="11"/>
+                                            </Button>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="15"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="15 Min" FontSize="11"/>
+                                            </Button>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="30"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="30 Min" FontSize="11"/>
+                                            </Button>
+                                            <Button Command="{Binding SetIntervalPresetCommand}" CommandParameter="60"
+                                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,4">
+                                                <TextBlock Text="60 Min" FontSize="11"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Disabled State Notice -->
+                                <Border Background="#24263a" CornerRadius="8" Padding="14,10"
+                                        IsVisible="{Binding !IsAutoSnapshotEnabled}">
+                                    <TextBlock Text="Auto snapshots are disabled. No background logs will be written to the database. Manual snapshots can still be taken via [+ Snapshot DB]."
+                                               FontSize="11" Foreground="#fb923c" TextWrapping="Wrap"/>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- SECTION 2: DATABASE BACKEND INFO -->
+                        <Border Background="#1c1d2d" CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="DATABASE &amp; CENTRALIZED LOGGING" FontSize="13" FontWeight="Bold" Foreground="#f8fafc"/>
+                                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" Margin="0,4">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2" Margin="0,0,10,10">
+                                        <TextBlock Text="ACTIVE PROVIDER" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Text="{Binding DatabaseProviderName}" FontSize="12" FontWeight="SemiBold" Foreground="#38bdf8"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2" Margin="0,0,0,10">
+                                        <TextBlock Text="LOCAL SERVER HOSTNAME" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Text="{Binding Hostname}" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="CENTRALIZED LOGGING" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Text="Supported (MySQL multi-server with host indexing)" FontSize="11" Foreground="#94a3b8"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="RECORDED SNAPSHOTS COUNT" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Text="{Binding TotalSnapshotsRecorded}" FontSize="12" FontWeight="SemiBold" Foreground="#34d399"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- SECTION 3: ACTIONS & PERSISTENCE -->
+                        <Border Background="#1c1d2d" CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Button Command="{Binding SaveSettingsCommand}" 
+                                            Background="#3b82f6" Foreground="White" CornerRadius="8" Padding="18,8">
+                                        <TextBlock Text="Save Settings" FontSize="12" FontWeight="SemiBold"/>
+                                    </Button>
+                                    <Button Command="{Binding ResetSettingsCommand}" 
+                                            Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="8" Padding="14,8">
+                                        <TextBlock Text="Reset to Defaults" FontSize="12"/>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SettingsStatusMessage}" FontSize="11" Foreground="#34d399"/>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 
