@@ -93,13 +93,13 @@ The executable and its configuration file are created in `publish/linux-x64/`:
 ```
 
 To launch it with the shorter `syspulse` command from any terminal, create a symlink in your personal bin directory:
-
 ```bash
 mkdir -p ~/.local/bin
 ln -sf ~/Documents/github/SysPulse/publish/linux-x64/SysPulse.Desktop ~/.local/bin/syspulse
 ```
 
 If `syspulse` is not found, add `export PATH="$HOME/.local/bin:$PATH"` to `~/.bashrc`, then open a new terminal. Use `linux-arm64` in place of `linux-x64` when publishing for ARM64 hardware.
+
 ---
 
 ## Database Configuration (MySQL / MariaDB vs SQLite)
