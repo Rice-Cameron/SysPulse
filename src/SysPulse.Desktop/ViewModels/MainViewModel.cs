@@ -78,11 +78,19 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private string _customSnapshotNote=string.Empty;
 
-    // Settings State
+    // Settings Applied State
     [ObservableProperty]
     private bool _isAutoSnapshotEnabled=true;
     [ObservableProperty]
     private int _autoSnapshotIntervalMinutes=5;
+
+    // Settings Draft / Pending State (Only applied on Save)
+    [ObservableProperty]
+    private bool _pendingIsAutoSnapshotEnabled=true;
+    [ObservableProperty]
+    private int _pendingAutoSnapshotIntervalMinutes=5;
+    [ObservableProperty]
+    private bool _hasUnsavedSettingsChanges=false;
     [ObservableProperty]
     private string _settingsStatusMessage=string.Empty;
 
@@ -110,7 +118,24 @@ public partial class MainViewModel : ViewModelBase{
     partial void OnSelectedTabIndexChanged(int value){
         if(value == 1){
             _=LoadSnapshotsAsync();
+        }else if(value == 2){
+            DiscardUnsavedSettings();
         }
+    }
+
+    partial void OnPendingIsAutoSnapshotEnabledChanged(bool value){
+        HasUnsavedSettingsChanges=value != IsAutoSnapshotEnabled || PendingAutoSnapshotIntervalMinutes != AutoSnapshotIntervalMinutes;
+    }
+
+    partial void OnPendingAutoSnapshotIntervalMinutesChanged(int value){
+        HasUnsavedSettingsChanges=PendingIsAutoSnapshotEnabled != IsAutoSnapshotEnabled || value != AutoSnapshotIntervalMinutes;
+    }
+
+    private void DiscardUnsavedSettings(){
+        PendingIsAutoSnapshotEnabled=IsAutoSnapshotEnabled;
+        PendingAutoSnapshotIntervalMinutes=AutoSnapshotIntervalMinutes;
+        HasUnsavedSettingsChanges=false;
+        SettingsStatusMessage=string.Empty;
     }
 
     private void InitializeSettings(){
@@ -134,6 +159,9 @@ public partial class MainViewModel : ViewModelBase{
         catch{
             // Fallback to defaults
         }
+        PendingIsAutoSnapshotEnabled=IsAutoSnapshotEnabled;
+        PendingAutoSnapshotIntervalMinutes=AutoSnapshotIntervalMinutes;
+        HasUnsavedSettingsChanges=false;
     }
 
     private void InitializeSystemInfo(){
@@ -356,22 +384,33 @@ public partial class MainViewModel : ViewModelBase{
     [RelayCommand]
     private void SetIntervalPreset(string minutesString){
         if(int.TryParse(minutesString, out int min)){
-            AutoSnapshotIntervalMinutes=Math.Clamp(min, 1, 120);
-            SettingsStatusMessage=$"Interval updated to {AutoSnapshotIntervalMinutes} minute(s). Click Save Settings to persist.";
+            PendingAutoSnapshotIntervalMinutes=Math.Clamp(min, 1, 120);
+            HasUnsavedSettingsChanges=true;
+            SettingsStatusMessage=$"Interval set to {PendingAutoSnapshotIntervalMinutes} minute(s). Click Save Settings to persist.";
         }
     }
 
     [RelayCommand]
+    private void DiscardSettings(){
+        DiscardUnsavedSettings();
+        SettingsStatusMessage="Unsaved changes discarded.";
+    }
+
+    [RelayCommand]
     private void ResetSettings(){
-        IsAutoSnapshotEnabled=true;
-        AutoSnapshotIntervalMinutes=5;
-        SettingsStatusMessage="Settings reset to defaults (5 minutes, enabled). Click Save Settings to persist.";
+        PendingIsAutoSnapshotEnabled=true;
+        PendingAutoSnapshotIntervalMinutes=5;
+        HasUnsavedSettingsChanges=true;
+        SettingsStatusMessage="Settings set to defaults (5 minutes, enabled). Click Save Settings to persist.";
     }
 
     [RelayCommand]
     private async Task SaveSettingsAsync(){
         try{
             // File.WriteAllTextAsync writes configuration JSON to application data folder
+            IsAutoSnapshotEnabled=PendingIsAutoSnapshotEnabled;
+            AutoSnapshotIntervalMinutes=PendingAutoSnapshotIntervalMinutes;
+            HasUnsavedSettingsChanges=false;
             string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
             string settingsPath=Path.Combine(localDir, "settings.json");

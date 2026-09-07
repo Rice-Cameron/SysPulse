@@ -409,23 +409,23 @@
                                             <TextBlock Text="When enabled, SysPulse will capture snapshots periodically based on the interval below."
                                                        FontSize="11" Foreground="#64748b"/>
                                         </StackPanel>
-                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsAutoSnapshotEnabled}" 
+                                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding PendingIsAutoSnapshotEnabled}" 
                                                       OnContent="Enabled" OffContent="Disabled" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
 
                                 <!-- Interval Configuration (Visible when enabled) -->
                                 <Border Background="#24263a" CornerRadius="8" Padding="16" 
-                                        IsVisible="{Binding IsAutoSnapshotEnabled}">
+                                        IsVisible="{Binding PendingIsAutoSnapshotEnabled}">
                                     <StackPanel Spacing="12">
                                         <Grid ColumnDefinitions="*, Auto">
                                             <TextBlock Grid.Column="0" Text="Time Between Snapshots" FontSize="12" FontWeight="SemiBold" Foreground="#cbd5e1"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding AutoSnapshotIntervalMinutes, StringFormat='{}{0} Minute(s)'}" 
+                                            <TextBlock Grid.Column="1" Text="{Binding PendingAutoSnapshotIntervalMinutes, StringFormat='{}{0} Minute(s)'}" 
                                                        FontSize="13" FontWeight="Bold" Foreground="#38bdf8"/>
                                         </Grid>
 
                                         <!-- Slider -->
-                                        <Slider Minimum="1" Maximum="60" Value="{Binding AutoSnapshotIntervalMinutes}" 
+                                        <Slider Minimum="1" Maximum="60" Value="{Binding PendingAutoSnapshotIntervalMinutes}" 
                                                 TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,4"/>
 
                                         <!-- Quick Preset Buttons -->
@@ -461,7 +461,7 @@
 
                                 <!-- Disabled State Notice -->
                                 <Border Background="#24263a" CornerRadius="8" Padding="14,10"
-                                        IsVisible="{Binding !IsAutoSnapshotEnabled}">
+                                        IsVisible="{Binding !PendingIsAutoSnapshotEnabled}">
                                     <TextBlock Text="Auto snapshots are disabled. No background logs will be written to the database. Manual snapshots can still be taken via [+ Snapshot DB]."
                                                FontSize="11" Foreground="#fb923c" TextWrapping="Wrap"/>
                                 </Border>
@@ -501,11 +501,19 @@
                                             Background="#3b82f6" Foreground="White" CornerRadius="8" Padding="18,8">
                                         <TextBlock Text="Save Settings" FontSize="12" FontWeight="SemiBold"/>
                                     </Button>
+                                    <Button Command="{Binding DiscardSettingsCommand}" 
+                                            IsEnabled="{Binding HasUnsavedSettingsChanges}"
+                                            Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="8" Padding="14,8">
+                                        <TextBlock Text="Discard Changes" FontSize="12"/>
+                                    </Button>
                                     <Button Command="{Binding ResetSettingsCommand}" 
                                             Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="8" Padding="14,8">
                                         <TextBlock Text="Reset to Defaults" FontSize="12"/>
                                     </Button>
                                 </StackPanel>
+                                <TextBlock Text="Unsaved changes pending. Click 'Save Settings' to apply, or 'Discard Changes' to revert." 
+                                           FontSize="11" FontWeight="SemiBold" Foreground="#fb923c"
+                                           IsVisible="{Binding HasUnsavedSettingsChanges}"/>
                                 <TextBlock Text="{Binding SettingsStatusMessage}" FontSize="11" Foreground="#34d399"/>
                             </StackPanel>
                         </Border>
