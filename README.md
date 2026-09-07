@@ -1,8 +1,18 @@
-# SysPulse — Native Linux Desktop Command Center
+# SysPulse — Linux Desktop System Monitor
 
-SysPulse is a cross-platform, glanceable system monitor and command center built with **Avalonia UI** (C# / XAML / MVVM), modern **.NET**, and **Entity Framework Core** with **MySQL/MariaDB** (and local SQLite) support.
+SysPulse is a hands-on learning project built to explore modern cross-platform **.NET**, **Avalonia UI** (C# / XAML / MVVM), and **Entity Framework Core** on Linux.
 
-Unlike terminal tools like `btop` which can be dense and difficult to parse at a glance, SysPulse provides high-contrast, color-coded visual cards for CPU, RAM, Swap, Drives, Network throughput, and top active processes.
+Coming from a background working primarily with legacy Windows .NET (WPF, WinForms, older .NET Framework), this repository serves as a personal sandbox to experience how modern, open-source .NET development feels natively on a Linux desktop—from reading `/proc` and `sysfs` kernel telemetry directly to building responsive XAML dashboards and working entirely from the command line without Visual Studio.
+
+---
+
+## What This Project Explores
+
+- **Modern .NET & C# on Linux**: Working directly from the terminal with the free `dotnet` CLI (`dotnet build`, `dotnet run`, `dotnet watch`), modern SDK-style projects, and CommunityToolkit MVVM source generators (`[ObservableProperty]`, `[RelayCommand]`).
+- **Avalonia UI**: Modern cross-platform XAML rendering natively on Linux desktop environments with responsive cards, theme switching (Dark & Light mode), and compile-time data bindings.
+- **Native Linux Telemetry**: Reading performance metrics directly from the Linux virtual filesystems (`/proc/stat`, `/proc/meminfo`, `/proc/net/dev`, and `/sys/devices/system/cpu/...`) with zero external native wrapper dependencies.
+- **EF Core Persistence**: Code-first database persistence featuring zero-config local SQLite fallback alongside MySQL / MariaDB support for saving and archiving system snapshots.
+- **Automated Testing**: Unit and integration testing metric parsers and database repository flows with xUnit.
 
 ---
 
@@ -10,7 +20,7 @@ Unlike terminal tools like `btop` which can be dense and difficult to parse at a
 
 ```
 SysPulse/
-├── SysPulse.slnx                 (Modern lightweight solution file)
+├── SysPulse.sln                  (Lightweight solution file)
 ├── .gitignore                    (Ignores bin/, obj/, and local DBs)
 ├── README.md                     (Architecture and guide)
 ├── src/
