@@ -82,21 +82,6 @@ Works out-of-the-box with Omnisharp or Roslyn LSP for C# completion.
 
 ---
 
-## Key Differences: .NET Framework 4.8 vs. Modern .NET
-
-| Concept | .NET Framework 4.8 (WPF / WinForms) | Modern .NET (Linux / Cross-Platform) |
-| :--- | :--- | :--- |
-| **Project File** | 1,000+ line XML with GUIDs & file lists | 20–30 line SDK-style `.csproj` |
-| **Dependencies** | `packages.config` or bloated references | `<PackageReference>` directly in `.csproj` |
-| **Compiler** | Visual Studio proprietary build | Free, open-source `dotnet` CLI (`Roslyn`) |
-| **Data Binding** | Runtime reflection `{Binding Name}` | Compile-time validated `{CompiledBinding Name}` |
-| **MVVM Boilerplate**| Manual `INotifyPropertyChanged` & `SetProperty` | Source generators: `[ObservableProperty]`, `[RelayCommand]` |
-| **Services / DI** | Ad-hoc singletons or third-party containers | Standard `IServiceCollection` / `Microsoft.Extensions.DependencyInjection` |
-| **Configuration** | `web.config` / `app.config` XML | `appsettings.json` + Environment Variables |
-| **Persistence** | Old EF 6 / ADO.NET / LINQ-to-SQL | **EF Core** (code-first, high performance, cross-platform) |
-
----
-
 ## How to Reproduce This Setup Yourself From Scratch
 
 Here is the exact sequence of terminal commands used to create this solution from a clean slate:
