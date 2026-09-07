@@ -4,29 +4,29 @@ using SysPulse.Data.Entities;
 
 namespace SysPulse.Data.Context;
 
-public class SysPulseDbContext : DbContext {
+public class SysPulseDbContext : DbContext{
     public DbSet<SystemSnapshot> Snapshots => Set<SystemSnapshot>();
 
-    public SysPulseDbContext(DbContextOptions<SysPulseDbContext> options) : base(options) {
+    public SysPulseDbContext(DbContextOptions<SysPulseDbContext> options) : base(options){
     }
 
-    public SysPulseDbContext() {
+    public SysPulseDbContext(){
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-        if (!optionsBuilder.IsConfigured) {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
+        if(!optionsBuilder.IsConfigured){
             // Default zero-config fallback to local SQLite database in app folder
-            string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
+            string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
-            string dbPath = Path.Combine(localDir, "syspulse.db");
+            string dbPath=Path.Combine(localDir, "syspulse.db");
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+    protected override void OnModelCreating(ModelBuilder modelBuilder){
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<SystemSnapshot>(entity => {
+        modelBuilder.Entity<SystemSnapshot>(entity =>{
             entity.HasIndex(e => e.TimestampUtc);
         });
     }

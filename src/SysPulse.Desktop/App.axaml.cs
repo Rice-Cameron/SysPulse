@@ -13,18 +13,18 @@ using SysPulse.Desktop.Views;
 
 namespace SysPulse.Desktop;
 
-public partial class App : Application {
-    public IServiceProvider? Services { get; private set; }
+public partial class App : Application{
+    public IServiceProvider? Services{get;private set;}
 
-    public override void Initialize() {
+    public override void Initialize(){
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted() {
-        ServiceCollection services = new ServiceCollection();
+    public override void OnFrameworkInitializationCompleted(){
+        ServiceCollection services=new ServiceCollection();
 
         // 1. Load Configuration
-        IConfigurationRoot config = new ConfigurationBuilder()
+        IConfigurationRoot config=new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
@@ -35,15 +35,15 @@ public partial class App : Application {
         services.AddSingleton<ILinuxMetricCollector, LinuxMetricCollector>();
 
         // 3. Register EF Core Database (MySQL/MariaDB with automatic SQLite fallback)
-        string provider = config["DatabaseProvider"] ?? "SQLite";
-        if (provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase)) {
-            string? connStr = config.GetConnectionString("MySQL");
+        string provider=config["DatabaseProvider"] ?? "SQLite";
+        if(provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase)){
+            string? connStr=config.GetConnectionString("MySQL");
             services.AddDbContext<SysPulseDbContext>(options =>
                 options.UseMySQL(connStr ?? "Server=localhost;Database=syspulse;User=root;"));
-        } else {
-            string localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
+        }else{
+            string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
-            string dbPath = Path.Combine(localDir, "syspulse.db");
+            string dbPath=Path.Combine(localDir, "syspulse.db");
             services.AddDbContext<SysPulseDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
         }
@@ -52,13 +52,13 @@ public partial class App : Application {
         services.AddTransient<ISnapshotRepository, SnapshotRepository>();
         services.AddSingleton<MainViewModel>();
 
-        Services = services.BuildServiceProvider();
+        Services=services.BuildServiceProvider();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-            MainViewModel mainViewModel = Services.GetRequiredService<MainViewModel>();
-            MainWindow mainWindow = new MainWindow();
-            mainWindow.DataContext = mainViewModel;
-            desktop.MainWindow = mainWindow;
+        if(ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop){
+            MainViewModel mainViewModel=Services.GetRequiredService<MainViewModel>();
+            MainWindow mainWindow=new MainWindow();
+            mainWindow.DataContext=mainViewModel;
+            desktop.MainWindow=mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();

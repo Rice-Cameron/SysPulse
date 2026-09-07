@@ -4,12 +4,12 @@ using Xunit;
 
 namespace SysPulse.Tests;
 
-public class MetricCollectorTests {
-    private readonly LinuxMetricCollector _linuxMetricCollector = new LinuxMetricCollector();
+public class MetricCollectorTests{
+    private readonly LinuxMetricCollector _linuxMetricCollector=new LinuxMetricCollector();
 
     [Fact]
-    public async Task GetCpuMetricsAsync_ReturnsValidMetrics() {
-        CpuMetrics metrics = await _linuxMetricCollector.GetCpuMetricsAsync();
+    public async Task GetCpuMetricsAsync_ReturnsValidMetrics(){
+        CpuMetrics metrics=await _linuxMetricCollector.GetCpuMetricsAsync();
 
         Assert.NotNull(metrics);
         Assert.True(metrics.CoreCount > 0, "Core count should be greater than 0");
@@ -18,8 +18,8 @@ public class MetricCollectorTests {
     }
 
     [Fact]
-    public async Task GetMemoryMetricsAsync_ReturnsValidMemory() {
-        MemoryMetrics mem = await _linuxMetricCollector.GetMemoryMetricsAsync();
+    public async Task GetMemoryMetricsAsync_ReturnsValidMemory(){
+        MemoryMetrics mem=await _linuxMetricCollector.GetMemoryMetricsAsync();
 
         Assert.NotNull(mem);
         Assert.True(mem.TotalBytes > 0, "Total RAM should be > 0");
@@ -29,21 +29,21 @@ public class MetricCollectorTests {
     }
 
     [Fact]
-    public async Task GetDriveMetricsAsync_ReturnsMountedDrives() {
-        IReadOnlyList<DriveMetrics> drives = await _linuxMetricCollector.GetDriveMetricsAsync();
+    public async Task GetDriveMetricsAsync_ReturnsMountedDrives(){
+        IReadOnlyList<DriveMetrics> drives=await _linuxMetricCollector.GetDriveMetricsAsync();
 
         Assert.NotNull(drives);
         Assert.NotEmpty(drives);
 
-        DriveMetrics? rootDrive = drives.FirstOrDefault(d => d.MountPoint == "/");
+        DriveMetrics? rootDrive=drives.FirstOrDefault(d=>d.MountPoint == "/");
         Assert.NotNull(rootDrive);
         Assert.True(rootDrive.TotalBytes > 0, "Root drive total size should be > 0");
         Assert.InRange(rootDrive.UsagePercent, 0.0, 100.0);
     }
 
     [Fact]
-    public void GetSystemOverview_ReturnsHostAndUptime() {
-        SystemOverview overview = _linuxMetricCollector.GetSystemOverview();
+    public void GetSystemOverview_ReturnsHostAndUptime(){
+        SystemOverview overview=_linuxMetricCollector.GetSystemOverview();
 
         Assert.NotNull(overview);
         Assert.False(string.IsNullOrWhiteSpace(overview.Hostname), "Hostname should not be empty");
@@ -52,12 +52,12 @@ public class MetricCollectorTests {
     }
 
     [Fact]
-    public async Task GetTopProcessesAsync_ReturnsProcesses() {
-        IReadOnlyList<ProcessMetric> procs = await _linuxMetricCollector.GetTopProcessesAsync(5);
+    public async Task GetTopProcessesAsync_ReturnsProcesses(){
+        IReadOnlyList<ProcessMetric> procs=await _linuxMetricCollector.GetTopProcessesAsync(5);
 
         Assert.NotNull(procs);
         Assert.NotEmpty(procs);
         Assert.True(procs.Count <= 5);
-        Assert.All(procs, p => Assert.True(p.Id > 0));
+        Assert.All(procs, p=>Assert.True(p.Id > 0));
     }
 }
