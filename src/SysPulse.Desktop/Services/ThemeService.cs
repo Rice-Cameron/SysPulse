@@ -92,6 +92,14 @@ public class ThemeService : IDisposable{
         SetBrush("SysPulseSwapBrush", "#fb923c");
         SetBrush("SysPulseNetworkBrush", "#c084fc");
         SetBrush("SysPulseDangerBrush", "#ef4444");
+        SetBrush("ComboBoxBackground", "#2a2c42");
+        SetBrush("ComboBoxBackgroundPointerOver", "#2a2c42");
+        SetBrush("ComboBoxBackgroundPressed", "#2a2c42");
+        SetBrush("ComboBoxBackgroundUnfocused", "#2a2c42");
+        SetBrush("ComboBoxDropDownBackground", "#1c1d2d");
+        SetBrush("TextControlBackground", "#2a2c42");
+        SetBrush("TextControlBackgroundPointerOver", "#2a2c42");
+        SetBrush("TextControlBackgroundFocused", "#2a2c42");
     }
 
     private void ApplyLightPalette(){
@@ -114,6 +122,14 @@ public class ThemeService : IDisposable{
         SetBrush("SysPulseSwapBrush", "#ea580c");
         SetBrush("SysPulseNetworkBrush", "#9333ea");
         SetBrush("SysPulseDangerBrush", "#dc2626");
+        SetBrush("ComboBoxBackground", "#dee3eb");
+        SetBrush("ComboBoxBackgroundPointerOver", "#dee3eb");
+        SetBrush("ComboBoxBackgroundPressed", "#dee3eb");
+        SetBrush("ComboBoxBackgroundUnfocused", "#dee3eb");
+        SetBrush("ComboBoxDropDownBackground", "#ffffff");
+        SetBrush("TextControlBackground", "#dee3eb");
+        SetBrush("TextControlBackgroundPointerOver", "#dee3eb");
+        SetBrush("TextControlBackgroundFocused", "#dee3eb");
     }
 
     private void ApplyOmarchyPalette(){
@@ -164,6 +180,14 @@ public class ThemeService : IDisposable{
             SetBrush("SysPulseSwapBrush", orange);
             SetBrush("SysPulseNetworkBrush", magenta);
             SetBrush("SysPulseDangerBrush", red);
+            SetBrush("ComboBoxBackground", lighterBg);
+            SetBrush("ComboBoxBackgroundPointerOver", lighterBg);
+            SetBrush("ComboBoxBackgroundPressed", lighterBg);
+            SetBrush("ComboBoxBackgroundUnfocused", lighterBg);
+            SetBrush("ComboBoxDropDownBackground", bg);
+            SetBrush("TextControlBackground", lighterBg);
+            SetBrush("TextControlBackgroundPointerOver", lighterBg);
+            SetBrush("TextControlBackgroundFocused", lighterBg);
         }
         catch(Exception){
             ApplyDarkPalette();
