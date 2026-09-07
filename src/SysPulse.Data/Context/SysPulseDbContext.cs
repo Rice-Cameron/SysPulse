@@ -15,7 +15,6 @@ public class SysPulseDbContext : DbContext{
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
         if(!optionsBuilder.IsConfigured){
-            // Default zero-config fallback to local SQLite database in app folder
             string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
             string dbPath=Path.Combine(localDir, "syspulse.db");
@@ -27,6 +26,7 @@ public class SysPulseDbContext : DbContext{
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<SystemSnapshot>(entity =>{
             entity.HasIndex(e => e.TimestampUtc);
+            entity.HasIndex(e => e.Hostname);
         });
     }
 }

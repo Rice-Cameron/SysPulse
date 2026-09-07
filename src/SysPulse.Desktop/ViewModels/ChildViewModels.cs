@@ -50,3 +50,34 @@ public partial class ProcessItemViewModel : ViewModelBase{
     [ObservableProperty]
     private double _memoryMB;
 }
+
+public partial class SnapshotItemViewModel : ViewModelBase{
+    [ObservableProperty]
+    private int _id;
+    [ObservableProperty]
+    private string _hostname=string.Empty;
+    [ObservableProperty]
+    private DateTime _timestampUtc;
+    [ObservableProperty]
+    private double _cpuUsagePercent;
+    [ObservableProperty]
+    private double _memoryUsagePercent;
+    [ObservableProperty]
+    private double _memoryUsedGb;
+    [ObservableProperty]
+    private double _memoryTotalGb;
+    [ObservableProperty]
+    private double _swapUsagePercent;
+    [ObservableProperty]
+    private double _diskUsagePercent;
+    [ObservableProperty]
+    private double _networkDownloadKbps;
+    [ObservableProperty]
+    private double _networkUploadKbps;
+    [ObservableProperty]
+    private string _note=string.Empty;
+
+    public string TimestampLocalText => TimestampUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+    public string SummaryText => $"CPU: {CpuUsagePercent:F1}% | RAM: {MemoryUsagePercent:F1}% | Disk: {DiskUsagePercent:F1}%";
+    public string NetworkSpeedText => $"↓ {NetworkDownloadKbps:F1} KB/s  ↑ {NetworkUploadKbps:F1} KB/s";
+}

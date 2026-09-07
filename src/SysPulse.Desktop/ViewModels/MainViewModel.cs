@@ -56,11 +56,26 @@ public partial class MainViewModel : ViewModelBase{
     [ObservableProperty]
     private double _swapTotalGb;
 
-    // Collections
+    // Live Collections
     public ObservableCollection<double> PerCoreUsage{get;}=new ObservableCollection<double>();
     public ObservableCollection<DriveItemViewModel> Drives{get;}=new ObservableCollection<DriveItemViewModel>();
     public ObservableCollection<NetworkItemViewModel> NetworkInterfaces{get;}=new ObservableCollection<NetworkItemViewModel>();
     public ObservableCollection<ProcessItemViewModel> TopProcesses{get;}=new ObservableCollection<ProcessItemViewModel>();
+
+    // Snapshot Archive Menu Collections & State
+    public ObservableCollection<SnapshotItemViewModel> SnapshotsList{get;}=new ObservableCollection<SnapshotItemViewModel>();
+    [ObservableProperty]
+    private SnapshotItemViewModel? _selectedSnapshot;
+    [ObservableProperty]
+    private string _hostnameFilter=string.Empty;
+    [ObservableProperty]
+    private bool _isLoadingSnapshots;
+    [ObservableProperty]
+    private string _databaseProviderName="SQLite";
+    [ObservableProperty]
+    private int _selectedTabIndex=0;
+    [ObservableProperty]
+    private string _customSnapshotNote=string.Empty;
 
     // Persistence & Status
     [ObservableProperty]
@@ -82,6 +97,12 @@ public partial class MainViewModel : ViewModelBase{
 
     // Default constructor for designer / fallback
     public MainViewModel() : this(new LinuxMetricCollector(), new SnapshotRepository(new Data.Context.SysPulseDbContext())){
+    }
+
+    partial void OnSelectedTabIndexChanged(int value){
+        if(value == 1){
+            _=LoadSnapshotsAsync();
+        }
     }
 
     private void InitializeSystemInfo(){
@@ -205,6 +226,72 @@ public partial class MainViewModel : ViewModelBase{
     }
 
     [RelayCommand]
+    public async Task LoadSnapshotsAsync(){
+        IsLoadingSnapshots=true;
+        try{
+            // GetSnapshotsAsync executes query on configured database (SQLite or MySQL) and can throw DbException
+            string? host=string.IsNullOrWhiteSpace(HostnameFilter) ? null : HostnameFilter.Trim();
+            IReadOnlyList<SystemSnapshot> list=await _snapshotRepository.GetSnapshotsAsync(host, 100);
+            SnapshotsList.Clear();
+            for(int i=0;i<list.Count;i++){
+                SystemSnapshot s=list[i];
+                SnapshotItemViewModel item=new SnapshotItemViewModel();
+                item.Id=s.Id;
+                item.Hostname=s.Hostname;
+                item.TimestampUtc=s.TimestampUtc;
+                item.CpuUsagePercent=s.CpuUsagePercent;
+                item.MemoryUsagePercent=s.MemoryUsagePercent;
+                item.MemoryUsedGb=s.MemoryUsedGb;
+                item.MemoryTotalGb=s.MemoryTotalGb;
+                item.SwapUsagePercent=s.SwapUsagePercent;
+                item.DiskUsagePercent=s.DiskUsagePercent;
+                item.NetworkDownloadKbps=s.NetworkDownloadKbps;
+                item.NetworkUploadKbps=s.NetworkUploadKbps;
+                item.Note=s.Note ?? "Snapshot";
+                SnapshotsList.Add(item);
+            }
+            if(SelectedSnapshot == null && SnapshotsList.Count > 0){
+                SelectedSnapshot=SnapshotsList[0];
+            }
+            TotalSnapshotsRecorded=SnapshotsList.Count;
+            StatusMessage=$"Loaded {SnapshotsList.Count} snapshots from {DatabaseProviderName} at {DateTime.Now:T}";
+        }
+        catch(Exception ex){
+            StatusMessage=$"Load snapshots error: {ex.Message}";
+        }
+        finally{
+            IsLoadingSnapshots=false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteSelectedSnapshotAsync(){
+        if(SelectedSnapshot is null){
+            return;
+        }
+        int targetId=SelectedSnapshot.Id;
+        try{
+            // DeleteSnapshotAsync executes DB delete and can throw DbException
+            bool success=await _snapshotRepository.DeleteSnapshotAsync(targetId);
+            if(success){
+                SnapshotsList.Remove(SelectedSnapshot);
+                SelectedSnapshot=SnapshotsList.FirstOrDefault();
+                TotalSnapshotsRecorded=SnapshotsList.Count;
+                StatusMessage=$"Deleted snapshot #{targetId} from {DatabaseProviderName}";
+            }
+        }
+        catch(Exception ex){
+            StatusMessage=$"Delete snapshot error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ClearFilterAsync(){
+        HostnameFilter=string.Empty;
+        await LoadSnapshotsAsync();
+    }
+
+    [RelayCommand]
     private async Task TakeSnapshotAsync(){
         try{
             // Collecting metrics can throw IOException; SaveSnapshotAsync can throw DbException
@@ -212,8 +299,13 @@ public partial class MainViewModel : ViewModelBase{
             MemoryMetrics mem=await _linuxMetricCollector.GetMemoryMetricsAsync();
             IReadOnlyList<DriveMetrics> drives=await _linuxMetricCollector.GetDriveMetricsAsync();
             IReadOnlyList<NetworkMetrics> nets=await _linuxMetricCollector.GetNetworkMetricsAsync();
-            await SaveSnapshotAsync(cpu, mem, drives, nets, "Manual Snapshot");
-            StatusMessage=$"Saved snapshot #{TotalSnapshotsRecorded} to DB at {DateTime.Now:T}";
+            string note=string.IsNullOrWhiteSpace(CustomSnapshotNote) ? "Manual Snapshot" : CustomSnapshotNote.Trim();
+            await SaveSnapshotAsync(cpu, mem, drives, nets, note);
+            CustomSnapshotNote=string.Empty;
+            StatusMessage=$"Saved snapshot to {DatabaseProviderName} at {DateTime.Now:T}";
+            if(SelectedTabIndex == 1){
+                await LoadSnapshotsAsync();
+            }
         }
         catch(Exception ex){
             StatusMessage=$"Snapshot error: {ex.Message}";
@@ -222,7 +314,11 @@ public partial class MainViewModel : ViewModelBase{
 
     [RelayCommand]
     private async Task RefreshNowAsync(){
-        await PollMetricsAsync(CancellationToken.None);
+        if(SelectedTabIndex == 1){
+            await LoadSnapshotsAsync();
+        }else{
+            await PollMetricsAsync(CancellationToken.None);
+        }
     }
 
     private async Task SaveSnapshotAsync(
@@ -235,6 +331,7 @@ public partial class MainViewModel : ViewModelBase{
         DriveMetrics? primaryDrive=drives.FirstOrDefault(d => d.MountPoint == "/") ?? drives.FirstOrDefault();
         NetworkMetrics? primaryNet=nets.FirstOrDefault();
         SystemSnapshot snapshot=new SystemSnapshot();
+        snapshot.Hostname=Hostname;
         snapshot.TimestampUtc=DateTime.UtcNow;
         snapshot.CpuUsagePercent=cpu.UsagePercent;
         snapshot.MemoryUsagePercent=mem.UsagePercent;

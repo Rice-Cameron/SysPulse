@@ -26,6 +26,7 @@ public class SnapshotRepositoryTests : IDisposable{
     [Fact]
     public async Task SaveSnapshotAsync_PersistsAndReadsSnapshot(){
         SystemSnapshot snapshot=new SystemSnapshot();
+        snapshot.Hostname="server-01";
         snapshot.TimestampUtc=DateTime.UtcNow;
         snapshot.CpuUsagePercent=25.5;
         snapshot.MemoryUsagePercent=42.0;
@@ -40,6 +41,7 @@ public class SnapshotRepositoryTests : IDisposable{
         IReadOnlyList<SystemSnapshot> recent=await _snapshotRepository.GetRecentSnapshotsAsync(10);
         Assert.Single(recent);
         Assert.Equal(25.5, recent[0].CpuUsagePercent);
+        Assert.Equal("server-01", recent[0].Hostname);
         Assert.Equal("Test Snapshot", recent[0].Note);
     }
 
@@ -47,6 +49,7 @@ public class SnapshotRepositoryTests : IDisposable{
     public async Task GetRecentSnapshotsAsync_OrdersByDescendingTimestamp(){
         for(int i=1;i<=5;i++){
             SystemSnapshot snapshot=new SystemSnapshot();
+            snapshot.Hostname=$"node-0{i}";
             snapshot.TimestampUtc=DateTime.UtcNow.AddMinutes(i);
             snapshot.CpuUsagePercent=i * 10;
             snapshot.Note=$"Snap #{i}";
@@ -57,6 +60,40 @@ public class SnapshotRepositoryTests : IDisposable{
         Assert.Equal("Snap #5", list[0].Note);
         Assert.Equal("Snap #4", list[1].Note);
         Assert.Equal("Snap #3", list[2].Note);
+    }
+
+    [Fact]
+    public async Task GetSnapshotsAsync_FiltersByHostname(){
+        SystemSnapshot s1=new SystemSnapshot();
+        s1.Hostname="alpha-server";
+        s1.CpuUsagePercent=10.0;
+        s1.Note="Alpha 1";
+        await _snapshotRepository.SaveSnapshotAsync(s1);
+        SystemSnapshot s2=new SystemSnapshot();
+        s2.Hostname="beta-server";
+        s2.CpuUsagePercent=20.0;
+        s2.Note="Beta 1";
+        await _snapshotRepository.SaveSnapshotAsync(s2);
+        IReadOnlyList<SystemSnapshot> alphaList=await _snapshotRepository.GetSnapshotsAsync("alpha-server", 10);
+        Assert.Single(alphaList);
+        Assert.Equal("Alpha 1", alphaList[0].Note);
+        IReadOnlyList<SystemSnapshot> allList=await _snapshotRepository.GetSnapshotsAsync(null, 10);
+        Assert.True(allList.Count >= 2);
+    }
+
+    [Fact]
+    public async Task DeleteSnapshotAsync_RemovesSnapshot(){
+        SystemSnapshot snapshot=new SystemSnapshot();
+        snapshot.Hostname="temp-server";
+        snapshot.Note="To Delete";
+        await _snapshotRepository.SaveSnapshotAsync(snapshot);
+        IReadOnlyList<SystemSnapshot> list=await _snapshotRepository.GetSnapshotsAsync("temp-server", 10);
+        Assert.Single(list);
+        int id=list[0].Id;
+        bool deleted=await _snapshotRepository.DeleteSnapshotAsync(id);
+        Assert.True(deleted);
+        IReadOnlyList<SystemSnapshot> afterDelete=await _snapshotRepository.GetSnapshotsAsync("temp-server", 10);
+        Assert.Empty(afterDelete);
     }
 
     public void Dispose(){

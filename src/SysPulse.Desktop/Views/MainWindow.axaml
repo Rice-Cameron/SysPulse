@@ -12,17 +12,17 @@
         MinWidth="900" MinHeight="620"
         Background="#13141f">
 
-    <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="20">
+    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
 
         <!-- 1. TOP HEADER & SYSTEM INFO -->
-        <Border Grid.Row="0" Background="#1c1d2d" CornerRadius="12" Padding="18,14" Margin="0,0,0,16">
+        <Border Grid.Row="0" Background="#1c1d2d" CornerRadius="12" Padding="18,14" Margin="0,0,0,14">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Title & Host -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                     <Border Width="12" Height="12" CornerRadius="6" Background="#10b981" VerticalAlignment="Center"/>
                     <StackPanel Spacing="2">
                         <TextBlock Text="SysPulse Command Center" FontWeight="Bold" FontSize="18" Foreground="#f8fafc"/>
-                        <TextBlock Text="{Binding Hostname, StringFormat='Host: {0}'}" FontSize="12" Foreground="#94a3b8"/>
+                        <TextBlock Text="{Binding Hostname, StringFormat='Local Host: {0}'}" FontSize="12" Foreground="#94a3b8"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -30,7 +30,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24" VerticalAlignment="Center">
                     <StackPanel Spacing="2">
                         <TextBlock Text="OPERATING SYSTEM" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
-                        <TextBlock Text="{Binding OsDescription}" FontSize="12" Foreground="#cbd5e1" MaxWidth="320" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding OsDescription}" FontSize="12" Foreground="#cbd5e1" MaxWidth="300" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                     <StackPanel Spacing="2">
                         <TextBlock Text="ARCHITECTURE" FontSize="10" FontWeight="Bold" Foreground="#64748b"/>
@@ -44,190 +44,363 @@
 
                 <!-- Actions -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBox Width="140" PlaceholderText="Optional note..." Text="{Binding CustomSnapshotNote}"
+                             Background="#2a2c42" Foreground="#f8fafc" CornerRadius="8" FontSize="12" VerticalAlignment="Center"/>
+                    <Button Command="{Binding TakeSnapshotCommand}" 
+                            Background="#3b82f6" Foreground="White" CornerRadius="8" Padding="12,6">
+                        <TextBlock Text="+ Snapshot DB" FontSize="12" FontWeight="SemiBold"/>
+                    </Button>
                     <Button Command="{Binding RefreshNowCommand}" 
                             Background="#2a2c42" Foreground="#f8fafc" CornerRadius="8" Padding="12,6">
                         <TextBlock Text="↻ Refresh" FontSize="12" FontWeight="SemiBold"/>
-                    </Button>
-                    <Button Command="{Binding TakeSnapshotCommand}" 
-                            Background="#3b82f6" Foreground="White" CornerRadius="8" Padding="12,6">
-                        <TextBlock Text="Snapshot DB" FontSize="12" FontWeight="SemiBold"/>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- 2. FOUR GLANCEABLE STAT CARDS -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" Margin="0,0,0,16">
-            
-            <!-- CPU Card -->
-            <Border Grid.Column="0" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,0,8,0">
-                <StackPanel Spacing="8">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Grid.Column="0" Text="CPU USAGE" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
-                        <TextBlock Grid.Column="1" Text="{Binding CoreCount, StringFormat='{}{0} Cores'}" FontSize="11" Foreground="#94a3b8"/>
-                    </Grid>
-                    <TextBlock Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}%'}" 
-                               FontSize="32" FontWeight="Bold" Foreground="#38bdf8"/>
-                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding CpuUsagePercent}" 
-                                 Height="8" CornerRadius="4" Foreground="#38bdf8" Background="#2a2c42"/>
-                    <TextBlock Text="{Binding CpuClockGhz, StringFormat='Clock: {0:F2} GHz'}" 
-                               FontSize="11" Foreground="#94a3b8"/>
-                </StackPanel>
-            </Border>
+        <!-- 2. MAIN CONTENT TABS (LIVE MONITOR & SNAPSHOT ARCHIVE) -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Margin="0,0,0,10">
 
-            <!-- Memory Card -->
-            <Border Grid.Column="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="4,0,4,0">
-                <StackPanel Spacing="8">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Grid.Column="0" Text="MEMORY (RAM)" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
-                        <TextBlock Grid.Column="1" Text="{Binding MemoryTotalGb, StringFormat='{}{0:F1} GB Total'}" FontSize="11" Foreground="#94a3b8"/>
-                    </Grid>
-                    <TextBlock Text="{Binding MemoryUsagePercent, StringFormat='{}{0:F1}%'}" 
-                               FontSize="32" FontWeight="Bold" Foreground="#34d399"/>
-                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding MemoryUsagePercent}" 
-                                 Height="8" CornerRadius="4" Foreground="#34d399" Background="#2a2c42"/>
-                    <TextBlock Text="{Binding MemoryUsedGb, StringFormat='Used: {0:F1} GB'}" 
-                               FontSize="11" Foreground="#94a3b8"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Swap Memory Card -->
-            <Border Grid.Column="2" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="4,0,4,0">
-                <StackPanel Spacing="8">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <TextBlock Grid.Column="0" Text="SWAP MEMORY" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
-                        <TextBlock Grid.Column="1" Text="{Binding SwapTotalGb, StringFormat='{}{0:F1} GB Total'}" FontSize="11" Foreground="#94a3b8"/>
-                    </Grid>
-                    <TextBlock Text="{Binding SwapUsagePercent, StringFormat='{}{0:F1}%'}" 
-                               FontSize="32" FontWeight="Bold" Foreground="#fb923c"/>
-                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding SwapUsagePercent}" 
-                                 Height="8" CornerRadius="4" Foreground="#fb923c" Background="#2a2c42"/>
-                    <TextBlock Text="{Binding SwapUsedGb, StringFormat='Used: {0:F1} GB'}" 
-                               FontSize="11" Foreground="#94a3b8"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Network Throughput Card -->
-            <Border Grid.Column="3" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="8,0,0,0">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="NETWORK THROUGHPUT" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+            <!-- TAB 1: LIVE MONITOR -->
+            <TabItem Header="⚡ Live Monitor" FontSize="13" FontWeight="SemiBold">
+                <Grid RowDefinitions="Auto, *" Margin="0,10,0,0">
                     
-                    <ItemsControl ItemsSource="{Binding NetworkInterfaces}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="vm:NetworkItemViewModel">
-                                <StackPanel Margin="0,2">
-                                    <Grid ColumnDefinitions="*, Auto, Auto">
-                                        <TextBlock Grid.Column="0" Text="{Binding InterfaceName}" FontSize="11" FontWeight="SemiBold" Foreground="#cbd5e1"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding DownloadText, StringFormat='↓ {0}'}" FontSize="11" Foreground="#38bdf8" Margin="0,0,10,0"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding UploadText, StringFormat='↑ {0}'}" FontSize="11" Foreground="#c084fc"/>
-                                    </Grid>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-        </Grid>
+                    <!-- FOUR GLANCEABLE STAT CARDS -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*, *, *, *" Margin="0,0,0,14">
+                        <!-- CPU Card -->
+                        <Border Grid.Column="0" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,0,6,0">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" Text="CPU USAGE" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CoreCount, StringFormat='{}{0} Cores'}" FontSize="11" Foreground="#94a3b8"/>
+                                </Grid>
+                                <TextBlock Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                           FontSize="30" FontWeight="Bold" Foreground="#38bdf8"/>
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding CpuUsagePercent}" 
+                                             Height="8" CornerRadius="4" Foreground="#38bdf8" Background="#2a2c42"/>
+                                <TextBlock Text="{Binding CpuClockGhz, StringFormat='Clock: {0:F2} GHz'}" 
+                                           FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
 
-        <!-- 3. DETAILED SPLIT PANES (PER-CORE CPU & TOP PROCESSES / DRIVES) -->
-        <Grid Grid.Row="2" ColumnDefinitions="*, *">
+                        <!-- Memory Card -->
+                        <Border Grid.Column="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="4,0,4,0">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" Text="MEMORY (RAM)" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding MemoryTotalGb, StringFormat='{}{0:F1} GB Total'}" FontSize="11" Foreground="#94a3b8"/>
+                                </Grid>
+                                <TextBlock Text="{Binding MemoryUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                           FontSize="30" FontWeight="Bold" Foreground="#34d399"/>
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding MemoryUsagePercent}" 
+                                             Height="8" CornerRadius="4" Foreground="#34d399" Background="#2a2c42"/>
+                                <TextBlock Text="{Binding MemoryUsedGb, StringFormat='Used: {0:F1} GB'}" 
+                                           FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
 
-            <!-- Left Pane: Per-Core CPU & Drives -->
-            <Grid Grid.Column="0" RowDefinitions="*, *" Margin="0,0,8,0">
-                
-                <!-- Per-Core CPU -->
-                <Border Grid.Row="0" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,0,0,8">
-                    <Grid RowDefinitions="Auto, *">
-                        <TextBlock Grid.Row="0" Text="PER-CORE CPU UTILIZATION" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,10"/>
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{Binding PerCoreUsage}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid ColumnDefinitions="55, *, 45" Margin="0,3">
-                                            <TextBlock Grid.Column="0" Text="Core" FontSize="11" Foreground="#64748b"/>
-                                            <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding}" 
-                                                         Height="6" CornerRadius="3" Foreground="#38bdf8" Background="#2a2c42"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding, StringFormat='{}{0:F0}%'}" FontSize="11" Foreground="#cbd5e1" HorizontalAlignment="Right"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
+                        <!-- Swap Memory Card -->
+                        <Border Grid.Column="2" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="4,0,4,0">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Column="0" Text="SWAP MEMORY" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SwapTotalGb, StringFormat='{}{0:F1} GB Total'}" FontSize="11" Foreground="#94a3b8"/>
+                                </Grid>
+                                <TextBlock Text="{Binding SwapUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                           FontSize="30" FontWeight="Bold" Foreground="#fb923c"/>
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding SwapUsagePercent}" 
+                                             Height="8" CornerRadius="4" Foreground="#fb923c" Background="#2a2c42"/>
+                                <TextBlock Text="{Binding SwapUsedGb, StringFormat='Used: {0:F1} GB'}" 
+                                           FontSize="11" Foreground="#94a3b8"/>
+                            </StackPanel>
+                        </Border>
 
-                <!-- Mounted Drives / Storage -->
-                <Border Grid.Row="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,8,0,0">
-                    <Grid RowDefinitions="Auto, *">
-                        <TextBlock Grid.Row="0" Text="MOUNTED DRIVES &amp; DISK USAGE" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,10"/>
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{Binding Drives}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="vm:DriveItemViewModel">
-                                        <Border Background="#24263a" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
-                                            <Grid RowDefinitions="Auto, Auto">
-                                                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,6">
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock Text="{Binding MountPoint}" FontSize="12" FontWeight="Bold" Foreground="#f8fafc"/>
-                                                        <TextBlock Text="{Binding Format, StringFormat='({0})'}" FontSize="11" Foreground="#64748b"/>
-                                                    </StackPanel>
-                                                    <TextBlock Grid.Column="1" Text="{Binding SummaryText}" FontSize="11" Foreground="#94a3b8"/>
+                        <!-- Network Card -->
+                        <Border Grid.Column="3" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="NETWORK THROUGHPUT" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                <ItemsControl ItemsSource="{Binding NetworkInterfaces}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:NetworkItemViewModel">
+                                            <StackPanel Margin="0,2">
+                                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                                    <TextBlock Grid.Column="0" Text="{Binding InterfaceName}" FontSize="11" FontWeight="SemiBold" Foreground="#cbd5e1"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding DownloadText, StringFormat='↓ {0}'}" FontSize="11" Foreground="#38bdf8" Margin="0,0,10,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding UploadText, StringFormat='↑ {0}'}" FontSize="11" Foreground="#c084fc"/>
                                                 </Grid>
-                                                <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding UsagePercent}"
-                                                             Height="6" CornerRadius="3" Foreground="#fb923c" Background="#1a1a2e"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
                     </Grid>
-                </Border>
-            </Grid>
 
-            <!-- Right Pane: Top Resource Processes -->
-            <Border Grid.Column="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="8,0,0,0">
-                <Grid RowDefinitions="Auto, Auto, *">
-                    <TextBlock Grid.Row="0" Text="TOP PROCESSES BY MEMORY USAGE" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,10"/>
+                    <!-- DETAILED SPLIT PANES -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*, *">
+                        <!-- Left: Per-Core & Drives -->
+                        <Grid Grid.Column="0" RowDefinitions="*, *" Margin="0,0,6,0">
+                            <!-- Per-Core CPU -->
+                            <Border Grid.Row="0" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,0,0,6">
+                                <Grid RowDefinitions="Auto, *">
+                                    <TextBlock Grid.Row="0" Text="PER-CORE CPU UTILIZATION" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,8"/>
+                                    <ScrollViewer Grid.Row="1">
+                                        <ItemsControl ItemsSource="{Binding PerCoreUsage}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="55, *, 45" Margin="0,2">
+                                                        <TextBlock Grid.Column="0" Text="Core" FontSize="11" Foreground="#64748b"/>
+                                                        <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding}" 
+                                                                     Height="6" CornerRadius="3" Foreground="#38bdf8" Background="#2a2c42"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding, StringFormat='{}{0:F0}%'}" FontSize="11" Foreground="#cbd5e1" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+
+                            <!-- Mounted Drives -->
+                            <Border Grid.Row="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="0,6,0,0">
+                                <Grid RowDefinitions="Auto, *">
+                                    <TextBlock Grid.Row="0" Text="MOUNTED DRIVES &amp; DISK USAGE" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,8"/>
+                                    <ScrollViewer Grid.Row="1">
+                                        <ItemsControl ItemsSource="{Binding Drives}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="vm:DriveItemViewModel">
+                                                    <Border Background="#24263a" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                                        <Grid RowDefinitions="Auto, Auto">
+                                                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                                                    <TextBlock Text="{Binding MountPoint}" FontSize="12" FontWeight="Bold" Foreground="#f8fafc"/>
+                                                                    <TextBlock Text="{Binding Format, StringFormat='({0})'}" FontSize="11" Foreground="#64748b"/>
+                                                                </StackPanel>
+                                                                <TextBlock Grid.Column="1" Text="{Binding SummaryText}" FontSize="11" Foreground="#94a3b8"/>
+                                                            </Grid>
+                                                            <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding UsagePercent}"
+                                                                         Height="6" CornerRadius="3" Foreground="#fb923c" Background="#1a1a2e"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Right: Top Processes -->
+                        <Border Grid.Column="1" Background="#1c1d2d" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                            <Grid RowDefinitions="Auto, Auto, *">
+                                <TextBlock Grid.Row="0" Text="TOP PROCESSES BY MEMORY USAGE" FontSize="12" FontWeight="Bold" Foreground="#94a3b8" Margin="0,0,0,8"/>
+                                <Border Grid.Row="1" Background="#24263a" CornerRadius="6" Padding="10,6" Margin="0,0,0,6">
+                                    <Grid ColumnDefinitions="60, *, 90">
+                                        <TextBlock Grid.Column="0" Text="PID" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Grid.Column="1" Text="PROCESS NAME" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                        <TextBlock Grid.Column="2" Text="MEMORY (MB)" FontSize="11" FontWeight="Bold" Foreground="#64748b" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                                <ScrollViewer Grid.Row="2">
+                                    <ItemsControl ItemsSource="{Binding TopProcesses}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:ProcessItemViewModel">
+                                                <Border Padding="10,5" Margin="0,1" CornerRadius="4">
+                                                    <Grid ColumnDefinitions="60, *, 90">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Id}" FontSize="11" Foreground="#64748b"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" Foreground="#cbd5e1" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding MemoryMB, StringFormat='{}{0:F1} MB'}" FontSize="11" Foreground="#34d399" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 2: DATABASE SNAPSHOTS MENU -->
+            <TabItem Header="📜 Snapshots History" FontSize="13" FontWeight="SemiBold">
+                <Grid RowDefinitions="Auto, *" Margin="0,10,0,0">
                     
-                    <!-- Table Header -->
-                    <Border Grid.Row="1" Background="#24263a" CornerRadius="6" Padding="10,6" Margin="0,0,0,6">
-                        <Grid ColumnDefinitions="60, *, 90">
-                            <TextBlock Grid.Column="0" Text="PID" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
-                            <TextBlock Grid.Column="1" Text="PROCESS NAME" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
-                            <TextBlock Grid.Column="2" Text="MEMORY (MB)" FontSize="11" FontWeight="Bold" Foreground="#64748b" HorizontalAlignment="Right"/>
+                    <!-- FILTER & CONTROLS TOOLBAR -->
+                    <Border Grid.Row="0" Background="#1c1d2d" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="Auto, 200, Auto, Auto, *, Auto">
+                            <TextBlock Grid.Column="0" Text="Filter Server / Host:" FontSize="12" FontWeight="SemiBold" 
+                                       Foreground="#94a3b8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Column="1" Text="{Binding HostnameFilter}" PlaceholderText="e.g. server-01..."
+                                     Background="#2a2c42" Foreground="#f8fafc" CornerRadius="6" FontSize="12" VerticalAlignment="Center"/>
+                            <Button Grid.Column="2" Command="{Binding LoadSnapshotsCommand}" 
+                                    Background="#3b82f6" Foreground="White" CornerRadius="6" Padding="10,5" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Filter" FontSize="12" FontWeight="SemiBold"/>
+                            </Button>
+                            <Button Grid.Column="3" Command="{Binding ClearFilterCommand}" 
+                                    Background="#2a2c42" Foreground="#cbd5e1" CornerRadius="6" Padding="10,5" Margin="6,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Clear" FontSize="12"/>
+                            </Button>
+
+                            <!-- Database Provider Badge -->
+                            <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <Border Background="#2a2c42" CornerRadius="6" Padding="10,4">
+                                    <TextBlock Text="{Binding DatabaseProviderName, StringFormat='Database: {0}'}" 
+                                               FontSize="11" FontWeight="Bold" Foreground="#38bdf8"/>
+                                </Border>
+                                <Button Command="{Binding LoadSnapshotsCommand}" 
+                                        Background="#2a2c42" Foreground="#f8fafc" CornerRadius="6" Padding="10,5">
+                                    <TextBlock Text="↻ Refresh" FontSize="12" FontWeight="SemiBold"/>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Border>
 
-                    <!-- Process List -->
-                    <ScrollViewer Grid.Row="2">
-                        <ItemsControl ItemsSource="{Binding TopProcesses}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:ProcessItemViewModel">
-                                    <Border Padding="10,6" Margin="0,1" CornerRadius="4">
-                                        <Grid ColumnDefinitions="60, *, 90">
-                                            <TextBlock Grid.Column="0" Text="{Binding Id}" FontSize="11" Foreground="#64748b"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" Foreground="#cbd5e1" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding MemoryMB, StringFormat='{}{0:F1} MB'}" FontSize="11" Foreground="#34d399" HorizontalAlignment="Right"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
-        </Grid>
+                    <!-- MASTER-DETAIL SNAPSHOTS EXPLORER -->
+                    <Grid Grid.Row="1" ColumnDefinitions="400, *">
 
-        <!-- 4. BOTTOM STATUS BAR & DB INFO -->
-        <Border Grid.Row="3" Background="#1c1d2d" CornerRadius="8" Padding="14,8" Margin="0,16,0,0">
+                        <!-- Left: Snapshot List -->
+                        <Border Grid.Column="0" Background="#1c1d2d" CornerRadius="12" Padding="12" Margin="0,0,6,0">
+                            <Grid RowDefinitions="Auto, *">
+                                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="4,0,4,8">
+                                    <TextBlock Grid.Column="0" Text="RECORDED SNAPSHOTS" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SnapshotsList.Count, StringFormat='{}{0} total'}" FontSize="11" Foreground="#94a3b8"/>
+                                </Grid>
+                                <ListBox Grid.Row="1" ItemsSource="{Binding SnapshotsList}" 
+                                         SelectedItem="{Binding SelectedSnapshot}"
+                                         Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:SnapshotItemViewModel">
+                                            <Border Background="#24263a" CornerRadius="8" Padding="10,8" Margin="0,2">
+                                                <StackPanel Spacing="4">
+                                                    <Grid ColumnDefinitions="*, Auto">
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                                                            <Border Background="#3b82f6" CornerRadius="4" Padding="6,2">
+                                                                <TextBlock Text="{Binding Hostname}" FontSize="10" FontWeight="Bold" Foreground="White"/>
+                                                            </Border>
+                                                            <TextBlock Text="{Binding Note}" FontSize="11" FontWeight="SemiBold" Foreground="#f8fafc" 
+                                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="160"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Id, StringFormat='#{0}'}" FontSize="10" Foreground="#64748b"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding TimestampLocalText}" FontSize="10" Foreground="#94a3b8"/>
+                                                    <TextBlock Text="{Binding SummaryText}" FontSize="10" FontWeight="SemiBold" Foreground="#38bdf8"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- Right: Detailed Snapshot Inspector -->
+                        <Border Grid.Column="1" Background="#1c1d2d" CornerRadius="12" Padding="20" Margin="6,0,0,0">
+                            <Grid>
+                                <!-- Selected Snapshot Details -->
+                                <ScrollViewer IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <StackPanel Spacing="16">
+                                        <!-- Header banner -->
+                                        <Border Background="#24263a" CornerRadius="10" Padding="16">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <Border Background="#10b981" CornerRadius="4" Padding="8,3">
+                                                            <TextBlock Text="{Binding SelectedSnapshot.Hostname, StringFormat='Host: {0}'}" 
+                                                                       FontSize="12" FontWeight="Bold" Foreground="White"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding SelectedSnapshot.Note}" 
+                                                                   FontSize="16" FontWeight="Bold" Foreground="#f8fafc" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.TimestampLocalText, StringFormat='Local Timestamp: {0}'}" 
+                                                               FontSize="12" Foreground="#94a3b8"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.TimestampUtc, StringFormat='UTC Timestamp: {0:u}'}" 
+                                                               FontSize="11" Foreground="#64748b"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Command="{Binding DeleteSelectedSnapshotCommand}" 
+                                                        Background="#ef4444" Foreground="White" CornerRadius="8" Padding="12,6" VerticalAlignment="Top">
+                                                    <TextBlock Text="🗑 Delete" FontSize="12" FontWeight="SemiBold"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Detailed Metrics Cards -->
+                                        <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                                            <!-- CPU Details -->
+                                            <Border Grid.Row="0" Grid.Column="0" Background="#24263a" CornerRadius="10" Padding="14" Margin="0,0,6,8">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="CPU UTILIZATION" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.CpuUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                                               FontSize="26" FontWeight="Bold" Foreground="#38bdf8"/>
+                                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding SelectedSnapshot.CpuUsagePercent}" 
+                                                                 Height="8" CornerRadius="4" Foreground="#38bdf8" Background="#1a1a2e"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Memory Details -->
+                                            <Border Grid.Row="0" Grid.Column="1" Background="#24263a" CornerRadius="10" Padding="14" Margin="6,0,0,8">
+                                                <StackPanel Spacing="8">
+                                                    <Grid ColumnDefinitions="*, Auto">
+                                                        <TextBlock Grid.Column="0" Text="MEMORY (RAM)" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding SelectedSnapshot.MemoryTotalGb, StringFormat='Total: {0:F1} GB'}" FontSize="11" Foreground="#94a3b8"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.MemoryUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                                               FontSize="26" FontWeight="Bold" Foreground="#34d399"/>
+                                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding SelectedSnapshot.MemoryUsagePercent}" 
+                                                                 Height="8" CornerRadius="4" Foreground="#34d399" Background="#1a1a2e"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.MemoryUsedGb, StringFormat='Used: {0:F1} GB'}" 
+                                                               FontSize="11" Foreground="#94a3b8"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Disk Details -->
+                                            <Border Grid.Row="1" Grid.Column="0" Background="#24263a" CornerRadius="10" Padding="14" Margin="0,8,6,0">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="ROOT DISK USAGE" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.DiskUsagePercent, StringFormat='{}{0:F1}%'}" 
+                                                               FontSize="26" FontWeight="Bold" Foreground="#fb923c"/>
+                                                    <ProgressBar Minimum="0" Maximum="100" Value="{Binding SelectedSnapshot.DiskUsagePercent}" 
+                                                                 Height="8" CornerRadius="4" Foreground="#fb923c" Background="#1a1a2e"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Network Details -->
+                                            <Border Grid.Row="1" Grid.Column="1" Background="#24263a" CornerRadius="10" Padding="14" Margin="6,8,0,0">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="NETWORK THROUGHPUT AT RECORDING" FontSize="11" FontWeight="Bold" Foreground="#64748b"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.NetworkSpeedText}" 
+                                                               FontSize="18" FontWeight="Bold" Foreground="#c084fc" Margin="0,4"/>
+                                                    <TextBlock Text="{Binding SelectedSnapshot.SwapUsagePercent, StringFormat='Swap Memory Usage: {0:F1}%'}" 
+                                                               FontSize="11" Foreground="#94a3b8"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </ScrollViewer>
+
+                                <!-- Empty Selection Placeholder -->
+                                <StackPanel IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNull}}" 
+                                            HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                                    <TextBlock Text="📜" FontSize="36" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Select a snapshot from the list to view its metrics" 
+                                               FontSize="14" FontWeight="SemiBold" Foreground="#64748b" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- 3. BOTTOM STATUS BAR & DB INFO -->
+        <Border Grid.Row="2" Background="#1c1d2d" CornerRadius="8" Padding="14,8" Margin="0,4,0,0">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16">
-                    <TextBlock Text="● EF Core Active" FontSize="11" FontWeight="SemiBold" Foreground="#10b981"/>
+                    <TextBlock Text="{Binding DatabaseProviderName, StringFormat='● EF Core Active ({0})'}" 
+                               FontSize="11" FontWeight="SemiBold" Foreground="#10b981"/>
                     <TextBlock Text="{Binding TotalSnapshotsRecorded, StringFormat='Snapshots Saved: {0}'}" FontSize="11" Foreground="#94a3b8"/>
                 </StackPanel>
 
-                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" FontSize="11" Foreground="#64748b" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" FontSize="11" Foreground="#94a3b8" HorizontalAlignment="Center"/>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="SysPulse v1.0.0 (Avalonia Native)" FontSize="11" Foreground="#64748b"/>

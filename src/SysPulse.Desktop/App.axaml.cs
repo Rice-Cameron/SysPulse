@@ -31,11 +31,11 @@ public partial class App : Application{
         // 2. Register Linux Metrics Service
         services.AddSingleton<ILinuxMetricCollector, LinuxMetricCollector>();
         // 3. Register EF Core Database (MySQL/MariaDB with automatic SQLite fallback)
-        string provider=config["DatabaseProvider"] ?? "SQLite";
+        string provider=Environment.GetEnvironmentVariable("SYSPULSE_DB_PROVIDER") ?? config["DatabaseProvider"] ?? "SQLite";
         if(provider.Equals("MySQL", StringComparison.OrdinalIgnoreCase)){
-            string? connStr=config.GetConnectionString("MySQL");
+            string? connStr=Environment.GetEnvironmentVariable("SYSPULSE_MYSQL_CONN") ?? config.GetConnectionString("MySQL");
             services.AddDbContext<SysPulseDbContext>(options =>
-                options.UseMySQL(connStr ?? "Server=localhost;Database=syspulse;User=root;"));
+                options.UseMySQL(connStr ?? "Server=localhost;Port=3306;Database=syspulse;User=root;"));
         }else{
             string localDir=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SysPulse");
             Directory.CreateDirectory(localDir);
@@ -49,6 +49,7 @@ public partial class App : Application{
         Services=services.BuildServiceProvider();
         if(ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop){
             MainViewModel mainViewModel=Services.GetRequiredService<MainViewModel>();
+            mainViewModel.DatabaseProviderName=provider.ToUpperInvariant();
             MainWindow mainWindow=new MainWindow();
             mainWindow.DataContext=mainViewModel;
             desktop.MainWindow=mainWindow;

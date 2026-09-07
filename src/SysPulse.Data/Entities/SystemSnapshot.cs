@@ -5,6 +5,8 @@ namespace SysPulse.Data.Entities;
 public class SystemSnapshot{
     [Key]
     public int Id{get;set;}
+    [MaxLength(128)]
+    public string Hostname{get;set;}=Environment.MachineName;
     public DateTime TimestampUtc{get;set;}=DateTime.UtcNow;
     public double CpuUsagePercent{get;set;}
     public double MemoryUsagePercent{get;set;}
